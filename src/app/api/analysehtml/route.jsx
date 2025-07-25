@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import puppeteer from 'puppeteer';
-import { source as axeSource } from 'axe-core';
 
 export async function POST(request) {
   try {
@@ -10,37 +9,35 @@ export async function POST(request) {
       return NextResponse.json({ error: 'HTML content is required' }, { status: 400 });
     }
 
+    // const fullHtml = `
+    //   <!DOCTYPE html>
+    //   <html lang="en">
+    //     <head><meta charset="UTF-8"><title>Test</title></head>
+    //     <body>${html}</body>
+    //   </html>
+    // `;
+
+    console.log("Launching browser...");
     const browser = await puppeteer.launch({
       headless: 'new',
       args: ['--no-sandbox']
     });
 
     const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'domcontentloaded' });
 
-    // ✅ Wrap your HTML in full page structure
-    const fullHtml = `
-      <!DOCTYPE html>
-      <html lang="en">
-        <head><meta charset="UTF-8"><title>Test</title></head>
-        <body>${html}</body>
-      </html>
-    `;
+    // ✅ Inject axe-core from public CDN
+    await page.addScriptTag({
+      url: 'https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.8.2/axe.min.js'
+    });
 
-    await page.setContent(fullHtml, { waitUntil: 'domcontentloaded' });
-
-    // ✅ (Optional) Wait a bit to let DOM settle
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    // ✅ Inject axe-core script
-    await page.addScriptTag({ content: axeSource });
-
-    // ✅ Confirm axe-core is loaded
+    // ✅ Confirm axe-core is available
     const axeLoaded = await page.evaluate(() => typeof window.axe !== 'undefined');
     if (!axeLoaded) {
       throw new Error("axe-core script injection failed");
     }
 
-    // ✅ Run axe
+    // ✅ Run axe-core
     const axeResults = await page.evaluate(async () => {
       const results = await window.axe.run();
       return {
@@ -54,7 +51,6 @@ export async function POST(request) {
     });
 
     await browser.close();
-
     return NextResponse.json(axeResults);
 
   } catch (error) {
