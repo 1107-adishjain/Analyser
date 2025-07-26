@@ -4,16 +4,16 @@ import Body from "./component/body";
 export default function Home() {
   return (
     <>
-      <div className="w-screen h-auto">
+      <div className="w-95%">
         {/* <div className="container w-full" > */}
 <Navbar />
         
         <Body />
         {/* </div> */}
-        
-        
-        
-      </div>
+
+     
+
+        </div>
 
     </>
   );
