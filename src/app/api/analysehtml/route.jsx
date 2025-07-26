@@ -26,18 +26,17 @@ export async function POST(request) {
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'domcontentloaded' });
 
-    // ✅ Inject axe-core from public CDN
+    
     await page.addScriptTag({
       url: 'https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.8.2/axe.min.js'
     });
 
-    // ✅ Confirm axe-core is available
+
     const axeLoaded = await page.evaluate(() => typeof window.axe !== 'undefined');
     if (!axeLoaded) {
       throw new Error("axe-core script injection failed");
     }
 
-    // ✅ Run axe-core
     const axeResults = await page.evaluate(async () => {
       const results = await window.axe.run();
       return {

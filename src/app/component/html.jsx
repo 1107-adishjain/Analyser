@@ -24,8 +24,12 @@ export default function textbox() {
       body: JSON.stringify({ html }),
     });
 
-    console.log("Response from API:", res);
-    // Call your API or perform the analysis here
+    const data = await res.json();
+
+    setHtml(""); 
+
+    console.log("Response from API:", data);
+
   };
 
   const handleInput = (event) => {
