@@ -1,0 +1,55 @@
+pipeline {
+  agent any
+
+  environment {
+    EC2_USER     = 'ubuntu'
+    EC2_IP       = '34.226.209.142'
+    EC2_SSH_KEY  = credentials('EC2_KEY')      // Your private key credential ID
+    REPO_URL     = 'https://github.com/divyanshu978/Analyser.git'
+    REMOTE_DIR   = '/home/ubuntu/analyser'
+    COMPOSE_DIR  = 'docker'
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        git url: "${REPO_URL}", branch: 'main'
+      }
+    }
+    stage('test'){
+      steps{
+        sh 'npm test'
+      }
+    }
+    stage('Deploy to EC2') {
+      steps {
+        sshagent (credentials: ['EC2_KEY']) {
+          sh """
+            ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_IP} '
+              set -e
+              docker system prune -a --volumes -f
+              if [ ! -d "${REMOTE_DIR}" ]; then
+                git clone ${REPO_URL} ${REMOTE_DIR}
+              fi
+              cd ${REMOTE_DIR}
+              git reset --hard
+              git pull origin main
+              cd ${COMPOSE_DIR}
+              docker compose down || true
+              docker compose up -d --build
+            '
+          """
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      echo '✅ Deployment successful!'
+    }
+    failure {
+      echo '❌ Deployment failed.'
+    }
+  }
+}
