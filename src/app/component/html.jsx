@@ -1,58 +1,114 @@
 "use client";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Antenna } from "lucide-react";
-// import useform from "react-hook-form";
+import { Antenna, Box } from "lucide-react";
+import {Code, Search} from "lucide-react";
 
-export default function textbox() {
+export default function Textbox() {
   const [html, setHtml] = useState("");
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!html) {
+
+    if (!html.trim()) {
       alert("Please paste your HTML content before analyzing.");
       return;
     }
 
-    console.log("Submitting HTML content for analysis:", html);
+    setLoading(true);
 
-    const res = await fetch('/api/analysehtml', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ html }),
-    });
+    try {
+      const res = await fetch("/api/analysehtml", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ html }),
+      });
 
-    const data = await res.json();
-
-    setHtml(""); 
-
-    console.log("Response from API:", data);
-
-  };
-
-  const handleInput = (event) => {
-    setHtml(event.target.value);
+      const result = await res.json();
+      setData(result);
+      console.log("Response from API:", result);
+    } catch (error) {
+      console.error("Error during analysis:", error);
+    } finally {
+      setLoading(false);
+      setHtml("");
+    }
   };
 
   return (
-    <div>
-      <div className=" h-auto m-2 bg-gray-700 p-8 text-white rounded-md">
-        <h1 className="text-3xl font-extrabold">HTML Accessibility Analyser</h1>
-        <h2 className="text-xl mt-2 ">Paste your HTML content bellow for instant accessibility analysis</h2>
+    <>
+      
+       <div className="bg-gray-800/60 backdrop-blur-sm border border-gray-600/50 rounded-2xl p-8 shadow-2xl shadow-gray-900/30">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-3 bg-gray-700 rounded-xl border border-gray-600">
+          <Code className="w-6 h-6 text-gray-200" />
+        </div>
+        <h2 className="text-2xl font-bold text-white">HTML Analysis</h2>
       </div>
-      <form>
-        <textarea   rows="10" 
-        className="mr-2 mt-2 p-4 w-full text-white rounded-md bg-gray-700"
-         placeholder="Paste your HTML content here" 
-         onChange={handleInput} 
-         value={html}
-         >
-        </textarea>
-      </form>
 
-      <Button className={"mt-2 bg-gray-500 w-full text-2xl"} variant="ghost" onClick={handleSubmit} > <Antenna /> Analyze</Button>
-    </div>
+      <div className="space-y-6">
+        <div className="relative">
+
+          <textarea
+            placeholder="Paste your HTML code here..."
+            value={html}
+            onChange={(e) => setHtml(e.target.value)}
+            className="bg-gray-700/50 w-full border-gray-600/50 text-white placeholder-gray-400 p-7 min-h-[300px] rounded-xl font-mono focus:border-gray-400 focus:ring-gray-400/20 transition-all duration-300 resize-none text-xl"
+          />
+        </div>
+
+        <Button
+          className="w-full h-14 text-lg font-semibold bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-gray-900/50 border border-gray-600 hover:border-gray-500"
+          disabled={!html.trim()}
+          onClick={handleSubmit}
+        >
+          <Search className="w-5 h-5 mr-2" />
+          Analyze Accessibility
+        </Button>
+      </div>
+      </div>
+
+      {loading && (
+        <div className="flex items-center justify-center mt-4">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-gray-200"></div>
+        </div>
+      )}
+
+      {data && (
+        <div className="mt-6 p-4 bg-gray-800 text-white rounded-md">
+          <h2 className="text-2xl font-bold mb-2">Accessibility Report</h2>
+
+          {data.violations?.length > 0 ? (
+            <>
+              <h3 className="text-xl text-red-400 mb-2">
+                Violations Found: {data.violations.length}
+              </h3>
+              {data.violations.map((violation, i) => (
+                <div key={i} className="mb-4 border-b border-gray-600 pb-2">
+                  <p className="font-semibold">{violation.id}</p>
+                  <p className="text-sm text-gray-300">{violation.description}</p>
+                  <p className="text-sm italic text-gray-400">
+                    Impact: {violation.impact}
+                  </p>
+                  <ul className="ml-4 list-disc">
+                    {violation.nodes.map((node, j) => (
+                      <li key={j}>
+                        <code className="text-yellow-300">{node.html}</code>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </>
+          ) : (
+            <h3 className="text-green-400 text-xl"> No accessibility violations found!</h3>
+          )}
+        </div>
+      )}
+    </>
   );
 }

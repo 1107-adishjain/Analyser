@@ -1,19 +1,15 @@
 import Image from "next/image";
 import Navbar from "./component/navbar";
 import Body from "./component/body";
+import About from "./component/about";
 export default function Home() {
   return (
     <>
-      <div className="w-screen h-auto">
-        {/* <div className="container w-full" > */}
-<Navbar />
-        
+      <div className="w-95%">
+        <Navbar />
         <Body />
-        {/* </div> */}
-        
-        
-        
-      </div>
+      <About/>
+        </div>
 
     </>
   );
