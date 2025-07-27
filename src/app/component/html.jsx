@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Antenna, Box } from "lucide-react";
 import {Code, Search} from "lucide-react";
 
 export default function Textbox() {
