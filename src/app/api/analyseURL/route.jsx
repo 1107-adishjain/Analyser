@@ -18,7 +18,8 @@ export async function POST(request) {
 
         const browser = await puppeteer.launch({
             headless: 'new',
-            args: ['--no-sandbox']
+            args: ['--no-sandbox'],
+            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH
         });
 
         const page = await browser.newPage();
