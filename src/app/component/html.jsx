@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {Code, Search} from "lucide-react";
 
@@ -29,7 +29,8 @@ export default function Textbox() {
 
       const result = await res.json();
       setData(result);
-      console.log("Response from API:", result);
+   
+      // console.log("Response from API:", result);
     } catch (error) {
       console.error("Error during analysis:", error);
     } finally {
@@ -37,6 +38,15 @@ export default function Textbox() {
       setHtml("");
     }
   };
+useEffect(() => {
+  if (data) {
+    console.log(data.passes, "passes");
+
+    console.log("inapplicable", data.inapplicable);
+    console.log("incomplete", data.incomplete);
+  }
+}, [data]);
+  
 
   return (
     <>
