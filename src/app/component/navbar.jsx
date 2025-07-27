@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function Navbar() {
-  const auth = false;
+  const auth = true;
 
   const user ={
     name:"Ravi",

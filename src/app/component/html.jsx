@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Antenna, Box } from "lucide-react";
+import {Code, Search} from "lucide-react";
 
 export default function Textbox() {
   const [html, setHtml] = useState("");
@@ -40,37 +41,42 @@ export default function Textbox() {
 
   return (
     <>
-      <div className="h-auto m-2 bg-gray-700 p-8 text-white rounded-md">
-        <h1 className="text-3xl font-extrabold">HTML Accessibility Analyzer</h1>
-        <h2 className="text-xl mt-2">
-          Paste your HTML content below for instant accessibility analysis
-        </h2>
+      
+       <div className="bg-gray-800/60 backdrop-blur-sm border border-gray-600/50 rounded-2xl p-8 shadow-2xl shadow-gray-900/30">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-3 bg-gray-700 rounded-xl border border-gray-600">
+          <Code className="w-6 h-6 text-gray-200" />
+        </div>
+        <h2 className="text-2xl font-bold text-white">HTML Analysis</h2>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <textarea
-          rows="10"
-          className="mr-2 mt-2 p-4 w-full text-white rounded-md bg-gray-700"
-          placeholder="Paste your HTML content here"
-          onChange={(e) => setHtml(e.target.value)}
-          value={html}
-        />
-        <Button
-          type="submit"
-          className="mt-2 bg-gray-500 w-full text-2xl"
-          variant="ghost"
-        >
-          <Box className="mr-2" size={48} />
-          {loading ? "Analyzing..." : "Analyze"}
-        </Button>
-      </form>
+      <div className="space-y-6">
+        <div className="relative">
 
-      {
-  loading && (
-    <div className="flex items-center justify-center mt-4">
-      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-gray-200"></div>
-    </div>
-  )}
+          <textarea
+            placeholder="Paste your HTML code here..."
+            value={html}
+            onChange={(e) => setHtml(e.target.value)}
+            className="bg-gray-700/50 w-full border-gray-600/50 text-white placeholder-gray-400 p-7 min-h-[300px] rounded-xl font-mono focus:border-gray-400 focus:ring-gray-400/20 transition-all duration-300 resize-none text-xl"
+          />
+        </div>
+
+        <Button
+          className="w-full h-14 text-lg font-semibold bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-gray-900/50 border border-gray-600 hover:border-gray-500"
+          disabled={!html.trim()}
+          onClick={handleSubmit}
+        >
+          <Search className="w-5 h-5 mr-2" />
+          Analyze Accessibility
+        </Button>
+      </div>
+      </div>
+
+      {loading && (
+        <div className="flex items-center justify-center mt-4">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-gray-200"></div>
+        </div>
+      )}
 
       {data && (
         <div className="mt-6 p-4 bg-gray-800 text-white rounded-md">
