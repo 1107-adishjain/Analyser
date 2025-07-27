@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { CircleUserRound } from "lucide-react";
 import Link from "next/link";
 
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,8 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function Navbar() {
-  const auth = true;
-
+  const auth = false; 
   const user ={
     name:"Ravi",
     email:"pHtIg@example.com"
@@ -31,8 +31,8 @@ export default function Navbar() {
             <UserModelComponent user={user} />
           ) : (
             <div className="flex gap-4 mr-4">
-              <Button>Login</Button>
-              <Button>Register</Button>
+              <Link href="/login"><Button>Login</Button></Link>
+              <Link href="/register"><Button>Register</Button></Link>
             </div>
           )}
         </div>
