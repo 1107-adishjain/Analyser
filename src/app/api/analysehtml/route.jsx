@@ -9,13 +9,6 @@ export async function POST(request) {
       return NextResponse.json({ error: 'HTML content is required' }, { status: 400 });
     }
 
-    // const fullHtml = `
-    //   <!DOCTYPE html>
-    //   <html lang="en">
-    //     <head><meta charset="UTF-8"><title>Test</title></head>
-    //     <body>${html}</body>
-    //   </html>
-    // `;
 
     console.log("Launching browser...");
     const browser = await puppeteer.launch({
