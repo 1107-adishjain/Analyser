@@ -3,7 +3,7 @@ pipeline {
 
   environment {
     EC2_USER     = 'ubuntu'
-    EC2_IP       = '34.226.209.142'
+    EC2_IP       = '54.196.131.3'
     EC2_SSH_KEY  = credentials('EC2_KEY')      // Your private key credential ID
     REPO_URL     = 'https://github.com/divyanshu978/Analyser.git'
     REMOTE_DIR   = '/home/ubuntu/analyser'

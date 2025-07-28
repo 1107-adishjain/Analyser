@@ -30,7 +30,7 @@ RUN apk add --no-cache \
     yarn
 
 # Set environment variables required by Puppeteer
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 # Copy only necessary files from builder
 COPY --from=builder /app/public ./public
