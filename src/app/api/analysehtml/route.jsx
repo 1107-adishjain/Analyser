@@ -12,10 +12,10 @@ export async function POST(request) {
 
     console.log("Launching browser...");
     const browser = await puppeteer.launch({
-      headless: 'new',
+      headless: true, //'new'
       args: ['--no-sandbox'],
       executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
-       timeout: 60000, // 60 seconds
+      timeout: 60000, // 60 seconds
       protocolTimeout: 60000 // <-- ADD THIS!
     });
 
