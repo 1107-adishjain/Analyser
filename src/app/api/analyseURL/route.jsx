@@ -4,22 +4,24 @@ import { NextResponse } from "next/server";
 
 export async function POST(request) {
     try {
-        const {url} = await request.json();
+        const { url } = await request.json();
         if (!url) {
             return NextResponse.json({ error: 'URL is required' }, { status: 400 });
         }
 
         let validatedUrl;
-    try {
-      validatedUrl = new URL(url);
-    } catch (e) {
-      return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 });
-    }
+        try {
+            validatedUrl = new URL(url);
+        } catch (e) {
+            return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 });
+        }
 
         const browser = await puppeteer.launch({
-            headless: 'new',
+            headless: true, //'new'
             args: ['--no-sandbox'],
-            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH
+            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+            timeout: 60000, // 60 seconds
+            protocolTimeout: 60000 // <-- ADD THIS!
         });
 
         const page = await browser.newPage();
@@ -48,11 +50,11 @@ export async function POST(request) {
 
         await browser.close();
         return NextResponse.json(axeResults);
-      
-        
+
+
     } catch (error) {
         console.error("Error in POST request:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-        
+
     }
 }
