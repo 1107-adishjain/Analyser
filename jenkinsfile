@@ -3,8 +3,8 @@ pipeline {
 
   environment {
     EC2_USER     = 'ubuntu'
-    EC2_IP       = '54.196.131.3'
-    EC2_SSH_KEY  = credentials('EC2_KEY')      // Your private key credential ID
+    EC2_IP       = '54.196.131.3'  //paste the IP 
+    EC2_SSH_KEY  = credentials('EC2_KEY')     //your ec2-key!
     REPO_URL     = 'https://github.com/divyanshu978/Analyser.git'
     REMOTE_DIR   = '/home/ubuntu/analyser'
     COMPOSE_DIR  = 'docker'

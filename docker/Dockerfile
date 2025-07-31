@@ -22,7 +22,6 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium \
     chromium-sandbox \
-    # Essential libraries only
     libnss3 \
     libxss1 \
     libasound2 \
@@ -31,7 +30,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgtk-3-0 \
     libgbm-dev \
     libxshmfence1 \
-    # Clean up in same layer to reduce size
     && apt-get autoremove -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
