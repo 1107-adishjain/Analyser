@@ -1,0 +1,46 @@
+name: CI/CD to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to EC2 via SSH
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run Lint
+      run: npm run lint
+
+    - name: Deploy via SSH to EC2
+      uses: appleboy/ssh-action@v0.1.10
+      with:
+        host: ${{ secrets.EC2_IP }}
+        username: ubuntu
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          set -e
+          docker system prune -a --volumes -f
+          if [ ! -d "/home/ubuntu/analyser" ]; then
+            git clone https://github.com/1107-adishjain/Analyser.git /home/ubuntu/analyser
+          fi
+          cd /home/ubuntu/analyser
+          git reset --hard
+          git pull origin main
+          cd docker
+          docker compose down || true
+          docker compose up -d --build
+
