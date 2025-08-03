@@ -12,15 +12,17 @@ export async function POST(request) {
 
     console.log("Launching browser...");
     const browser = await puppeteer.launch({
-      headless: 'new',
+      headless: true, //'new'
       args: ['--no-sandbox'],
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+      timeout: 60000, // 60 seconds
+      protocolTimeout: 60000 // <-- ADD THIS!
     });
 
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'domcontentloaded' });
 
-    
+
     await page.addScriptTag({
       url: 'https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.8.2/axe.min.js'
     });
