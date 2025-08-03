@@ -147,18 +147,18 @@ export default function UrlBox() {
 
         {/* Violation Summary Boxes */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          
+
           {[
-            { label: "Critical", color: "red", impact: "critical" },
-            { label: "Serious", color: "yellow", impact: "serious" },
-            { label: "Moderate", color: "green", impact: "moderate" },
-            { label: "Minor", color: "blue", impact: "minor" },
-          ].map(({ label, color, impact }) => (
+            { label: "Critical", bgColor: "bg-red-500/20", textColor: "text-red-500", impact: "critical" },
+            { label: "Serious", bgColor: "bg-yellow-500/20", textColor: "text-yellow-500", impact: "serious" },
+            { label: "Moderate", bgColor: "bg-green-500/20", textColor: "text-green-500", impact: "moderate" },
+            { label: "Minor", bgColor: "bg-blue-500/20", textColor: "text-blue-500", impact: "minor" },
+          ].map(({ label, bgColor, textColor, impact }) => (
             <div
               key={impact}
-              className={`bg-${color}-500/20 rounded-lg p-5 text-center`}
+              className={`${bgColor} rounded-lg p-5 text-center`}
             >
-              <TriangleAlert className={`w-10 h-10 text-${color}-500 mx-auto mb-2`} />
+              <TriangleAlert className={`w-10 h-10 ${textColor} mx-auto mb-2`} />
               <h1 className="text-xl font-semibold">{label}</h1>
               <p className="text-2xl font-bold">
                 {data.violations.filter(v => v.impact === impact).length}
@@ -168,11 +168,16 @@ export default function UrlBox() {
         </div>
 
         {/* Detailed Violations */}
-        {data.violations.map((violation, i) => (
+
+        <div className="space-y-6 bg-gray-800/50 rounded-xl p-3 shadow-md border border-gray-700">
+          <h1 className="text-3xl font-bold mb-4 text-center my-4">Detailed Violations</h1>
+           {data.violations.map((violation, i) => (
           <div
             key={i}
             className="mb-6 bg-gray-800 rounded-xl p-6 shadow-md border border-gray-700"
           >
+
+           
             <h3 className="text-2xl font-bold mb-2 capitalize text-amber-300">
               {violation.id}
             </h3>
@@ -207,10 +212,13 @@ export default function UrlBox() {
             </ul>
           </div>
         ))}
+        </div>
+        
+       
       </>
     ) : (
       <h3 className="text-green-400 text-2xl text-center mt-4">
-        ✅ No accessibility violations found!
+        No accessibility violations found!
       </h3>
     )}
   </div>
