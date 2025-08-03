@@ -22,7 +22,7 @@ export default function Navbar() {
   return (
     <>
       <div className=" h-auto">
-        <div className="flex justify-between m-4 items-center p-4 text-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-md shadow-md">
+        <div className="flex justify-between m-4 items-center p-4 text-2xl bg-gradient-to-r from-gray-800 via-gray-600 to-gray-800 text-white rounded-md shadow-md">
           <div className="ml-7 ">
            <Link href="/">Analyser</Link>
           </div>

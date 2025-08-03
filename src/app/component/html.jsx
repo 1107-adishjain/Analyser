@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {Code, Search} from "lucide-react";
+import Link from "next/link";
 
 export default function Textbox() {
   const [html, setHtml] = useState("");
@@ -88,35 +89,41 @@ useEffect(() => {
       )}
 
       {data && (
-        <div className="mt-6 p-4 bg-gray-800 text-white rounded-md">
-          <h2 className="text-2xl font-bold mb-2">Accessibility Report</h2>
+        <>
+          <div className="mt-6 p-4 bg-gray-800 text-white rounded-md">
+            <h2 className="text-4xl font-bold mb-2 text-center">Accessibility Report</h2>
 
-          {data.violations?.length > 0 ? (
-            <>
-              <h3 className="text-xl text-red-400 mb-2">
-                Violations Found: {data.violations.length}
-              </h3>
-              {data.violations.map((violation, i) => (
-                <div key={i} className="mb-4 border-b border-gray-600 pb-2">
-                  <p className="font-semibold">{violation.id}</p>
-                  <p className="text-sm text-gray-300">{violation.description}</p>
-                  <p className="text-sm italic text-gray-400">
-                    Impact: {violation.impact}
-                  </p>
-                  <ul className="ml-4 list-disc">
-                    {violation.nodes.map((node, j) => (
-                      <li key={j}>
-                        <code className="text-yellow-300">{node.html}</code>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </>
-          ) : (
-            <h3 className="text-green-400 text-xl"> No accessibility violations found!</h3>
-          )}
-        </div>
+            {data.violations?.length > 0 ? (
+              <>
+                <div ><h3 className="text-2xl text-red-400 mb-2 m-4 text-center">
+                  Violations Found: {data.violations.length}
+                </h3></div>
+
+                {data.violations.map((violation, i) => (
+                  <div key={i} className="mb-4 border-b border-gray-600 p-4 bg-gray-900 rounded-md">
+                    <p className="font-semibold text-2xl">{(violation.id).charAt(0).toUpperCase() + (violation.id).slice(1)}</p>
+
+                    <p className="text-xl text-gray-100" > Description : {violation.description}</p>
+                    <Link className="text-xl text-gray-100 flex gap-2 " href={violation.helpUrl}> Help : <h1 className="hover:text-blue-400  hover:underline" >{violation.helpUrl}</h1></Link>
+                    <p className="text-xl font-bold italic text-gray-400 flex gap-3">
+                      {/* // i want to show impact in a better way */}
+                      Impact: {violation.impact === "critical" ? <h1 className="text-red-400 text-xl font-bold "> ⚠️ Critical</h1> : violation.impact === "serious" ? <h1 className="text-orange-400 text-xl font-bold">⚠️ Serious</h1> : violation.impact === "moderate" ? <h1 className="text-yellow-400 text-xl font-bold">ℹ️ Moderate</h1> : <h1 className="text-green-400 text-xl font-bold">ℹ️ Minor</h1>}
+                    </p>
+                    <ul className="ml-4 list-disc">
+                      {violation.nodes.map((node, j) => (
+                        <li key={j}>
+                          <code className="text-yellow-300">{node.html}</code>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </>
+            ) : (
+              <h3 className="text-green-400 text-xl"> No accessibility violations found!</h3>
+            )}
+          </div>
+        </>
       )}
     </>
   );
