@@ -109,10 +109,10 @@ pipeline {
       '''
     }
     success {
-      echo '🎉 Pipeline completed successfully!'
+      echo '✅ Deployment successful!'
     }
     failure {
-      echo '💥 Pipeline failed! Check the logs above.'
+      echo '❌ Deployment failed.'
     }
   }
 }

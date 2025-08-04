@@ -3,7 +3,7 @@ const About = () => {
     <div className="max-w-auto mx-auto px-6 py-12 bg-gray-800">
       {/* Header */}
       <div className="text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-bold mb-6 text-white">🧠 About Accessibility Analyzer</h1>
+        <h1 className="text-4xl md:text-5xl font-bold mb-6 text-white"> About Accessibility Analyzer</h1>
         <p className="text-lg text-gray-200 max-w-3xl mx-auto leading-relaxed">
           Welcome to <strong className="text-gray-300">Accessibility Analyzer</strong> — your companion in building web
           experiences that are inclusive, user-friendly, and compliant with global accessibility standards.
