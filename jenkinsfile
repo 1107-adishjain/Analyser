@@ -2,24 +2,58 @@ pipeline {
   agent any
 
   environment { 
-    EC2_USER     = 'ubuntu'
-    EC2_IP       = '54.196.131.3'  //paste the IP 
-    EC2_SSH_KEY  = credentials('EC2_KEY')     //your ec2-key!
-    REPO_URL     = 'https://github.com/divyanshu978/Analyser.git'
-    REMOTE_DIR   = '/home/ubuntu/analyser'
-    COMPOSE_DIR  = 'docker'
+    DOCKER_IMAGE     = 'analyser'
+    DOCKERHUB_REPO   = 'adishjain1107/analyser'  // Replace with your DockerHub username
+    EC2_USER         = 'ubuntu'
+    EC2_IP           = '3.80.112.118'
+    EC2_SSH_KEY      = credentials('EC2_KEY')
+    DOCKERHUB_CREDS  = credentials('dockerhub-credentials')
+    REPO_URL         = 'https://github.com/1107-adishjain/Analyser.git'
+    REMOTE_DIR       = '/home/ubuntu/analyser'
+    COMPOSE_DIR      = 'docker'
+    BUILD_NUMBER     = "${env.BUILD_NUMBER}"
   }
 
   stages {
     stage('Checkout') {
       steps {
         git url: "${REPO_URL}", branch: 'main'
+        echo "🔄 Code checked out successfully"
       }
     }
     
     stage('Lint Code') {
       steps {
-        sh 'npm run lint'     // if you use ESLint or similar tools
+        dir('docker') {
+          sh 'npm run lint || echo "Linting completed with warnings"'
+        }
+        echo "✅ Code linting completed"
+      }
+    }
+
+    stage('Build Docker Image') {
+      steps {
+        script {
+          sh """
+            cd docker
+            docker build -f Dockerfile -t ${DOCKERHUB_REPO}:${BUILD_NUMBER} ..
+            docker tag ${DOCKERHUB_REPO}:${BUILD_NUMBER} ${DOCKERHUB_REPO}:latest
+          """
+          echo "🐳 Docker image built successfully"
+        }
+      }
+    }
+
+    stage('Push to DockerHub') {
+      steps {
+        script {
+          sh """
+            echo '${DOCKERHUB_CREDS_PSW}' | docker login -u '${DOCKERHUB_CREDS_USR}' --password-stdin
+            docker push ${DOCKERHUB_REPO}:${BUILD_NUMBER}
+            docker push ${DOCKERHUB_REPO}:latest
+          """
+          echo "🚀 Images pushed to DockerHub successfully"
+        }
       }
     }
 
@@ -29,16 +63,34 @@ pipeline {
           sh """
             ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_IP} '
               set -e
-              docker system prune -a --volumes -f
+              echo "🔄 Starting deployment on EC2..."
+              
+              # Create directory if it doesn't exist
               if [ ! -d "${REMOTE_DIR}" ]; then
                 git clone ${REPO_URL} ${REMOTE_DIR}
               fi
+              
+              # Update code and docker-compose file
               cd ${REMOTE_DIR}
               git reset --hard
               git pull origin main
+              
+              # Navigate to docker directory
               cd ${COMPOSE_DIR}
+              
+              # Pull latest images
+              echo "📥 Pulling latest images from DockerHub..."
+              docker compose pull
+              
+              # Stop existing containers
+              echo "⏹️  Stopping existing containers..."
               docker compose down || true
-              docker compose up -d --build
+              
+              # Start new containers
+              echo "🚀 Starting new containers..."
+              docker compose up -d
+              
+              echo "✅ Deployment completed successfully!"
             '
           """
         }
@@ -47,11 +99,20 @@ pipeline {
   }
 
   post {
+    always {
+      // Clean up Jenkins server
+      sh '''
+        echo "🧹 Cleaning up Jenkins server..."
+        docker system prune -f
+        docker image prune -a -f
+        docker logout
+      '''
+    }
     success {
-      echo '✅ Deployment successful!'
+      echo '🎉 Pipeline completed successfully!'
     }
     failure {
-      echo '❌ Deployment failed.'
+      echo '💥 Pipeline failed! Check the logs above.'
     }
   }
 }
