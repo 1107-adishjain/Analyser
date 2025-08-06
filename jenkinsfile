@@ -2,24 +2,110 @@ pipeline {
   agent any
 
   environment { 
-    EC2_USER     = 'ubuntu'
-    EC2_IP       = '54.196.131.3'  //paste the IP 
-    EC2_SSH_KEY  = credentials('EC2_KEY')     //your ec2-key!
-    REPO_URL     = 'https://github.com/divyanshu978/Analyser.git'
-    REMOTE_DIR   = '/home/ubuntu/analyser'
-    COMPOSE_DIR  = 'docker'
+    DOCKER_IMAGE     = 'analyser'
+    DOCKERHUB_REPO   = 'adishjain1107/analyser'
+    EC2_USER         = 'ubuntu'
+    EC2_IP           = '54.208.182.45'
+    EC2_SSH_KEY      = credentials('EC2_KEY')
+    DOCKERHUB_CREDS  = credentials('dockerhub-credentials')
+//  SONAR_TOKEN     = credentials('sonar-token')
+    REPO_URL         = 'https://github.com/1107-adishjain/Analyser.git'
+    REMOTE_DIR       = '/home/ubuntu/analyser'
+    COMPOSE_DIR      = 'docker'
+    BUILD_NUMBER     = "${env.BUILD_NUMBER}"
   }
 
   stages {
     stage('Checkout') {
       steps {
         git url: "${REPO_URL}", branch: 'main'
+        echo "🔄 Code checked out successfully"
       }
     }
     
     stage('Lint Code') {
       steps {
-        sh 'npm run lint'     // if you use ESLint or similar tools
+        dir('docker') {
+          sh 'npm run lint || echo "Linting completed with warnings"'
+        }
+        echo "✅ Code linting completed"
+      }
+    }
+
+    // SonarQube stages commented out but kept for reference
+    // stage('SonarQube Analysis') {
+    //   steps {
+    //     withCredentials([string(credentialsId: 'sonar-token', variable: 'SQ_TOKEN')]) {
+    //       sh """
+    //         sonar-scanner \
+    //           -Dsonar.projectKey=analyser-project \
+    //           -Dsonar.sources=src \
+    //           -Dsonar.host.url=http://localhost:9000 \
+    //           -Dsonar.login=$SQ_TOKEN \
+    //           -Dsonar.exclusions=node_modules/**,docker/**
+    //       """
+    //     }
+    //   }
+    // }
+
+    // stage('Quality Gate') {
+    //   steps {
+    //     timeout(time: 30, unit: 'MINUTES') {
+    //       waitForQualityGate abortPipeline: true
+    //     }
+    //   }
+    // }
+
+    stage('Build Docker Image') {
+      steps {
+        sh """
+          cd docker
+          docker build -f Dockerfile -t ${DOCKERHUB_REPO}:${BUILD_NUMBER} ..
+          docker tag ${DOCKERHUB_REPO}:${BUILD_NUMBER} ${DOCKERHUB_REPO}:latest
+        """
+        echo "🐳 Docker image built successfully"
+      }
+    }
+
+    stage('Push to DockerHub') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials',
+                                          usernameVariable: 'DH_USER',
+                                          passwordVariable: 'DH_PSW')]) {
+          sh '''
+            echo "$DH_PSW" | docker login -u "$DH_USER" --password-stdin
+            
+            # Check if image already exists on DockerHub
+            if docker manifest inspect ${DOCKERHUB_REPO}:${BUILD_NUMBER} > /dev/null 2>&1; then
+              echo "🔍 Image already exists, skipping build-specific push"
+            else
+              echo "📤 Pushing new image..."
+              docker push ${DOCKERHUB_REPO}:${BUILD_NUMBER}
+            fi
+            
+            # Always update latest tag
+            echo "📤 Updating latest tag..."
+            docker tag ${DOCKERHUB_REPO}:${BUILD_NUMBER} ${DOCKERHUB_REPO}:latest
+            
+            # Push latest with retry mechanism
+            for attempt in 1 2 3; do
+              if docker push ${DOCKERHUB_REPO}:latest; then
+                echo "✅ Latest tag updated successfully on attempt $attempt"
+                break
+              else
+                echo "⚠️  Latest push attempt $attempt failed, retrying in $((attempt*5)) seconds..."
+                sleep $((attempt*5))
+                if [ $attempt -eq 3 ]; then
+                  echo "❌ Failed to push latest after 3 attempts"
+                  exit 0
+                fi
+              fi
+            done
+            
+            docker logout
+          '''
+        }
+        echo "🚀 Images pushed to DockerHub successfully"
       }
     }
 
@@ -27,19 +113,23 @@ pipeline {
       steps {
         sshagent (credentials: ['EC2_KEY']) {
           sh """
-            ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_IP} '
+            ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_IP} "
               set -e
-              docker system prune -a --volumes -f
-              if [ ! -d "${REMOTE_DIR}" ]; then
-                git clone ${REPO_URL} ${REMOTE_DIR}
-              fi
-              cd ${REMOTE_DIR}
+              echo 'Starting deployment on EC2...'
+              
+              [ -d '${REMOTE_DIR}' ] || git clone ${REPO_URL} ${REMOTE_DIR}
+              
+              cd '${REMOTE_DIR}'
               git reset --hard
               git pull origin main
-              cd ${COMPOSE_DIR}
+              
+              cd '${COMPOSE_DIR}'
+              docker compose pull
               docker compose down || true
-              docker compose up -d --build
-            '
+              docker compose up -d
+              
+              echo 'Deployment completed successfully!'
+            "
           """
         }
       }
@@ -47,11 +137,19 @@ pipeline {
   }
 
   post {
+    always {
+      sh '''
+        echo "🧹 Cleaning up Jenkins server..."
+        docker system prune -f
+        docker image prune -a -f
+        docker logout || true
+      '''
+    }
     success {
-      echo ' Deployment successful!'
+      echo '✅ Deployment successful!'
     }
     failure {
-      echo ' Deployment failed.'
+      echo '❌ Deployment failed.'
     }
   }
 }

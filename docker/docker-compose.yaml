@@ -2,9 +2,7 @@ version: '3.8'
 
 services:
   frontend:
-    build:
-      context: ..
-      dockerfile: ./docker/Dockerfile
+    image: adishjain1107/analyser:latest
     container_name: nextjs-app
     restart: unless-stopped
     expose:
