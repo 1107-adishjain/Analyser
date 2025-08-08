@@ -11,6 +11,7 @@ export const saveViolation = async (userId, url, analysisResult) => {
         {
           user_id: userId,
           url: url,
+          html: html,
           result: analysisResult,
           violations_count: violationsCount,
           score: score

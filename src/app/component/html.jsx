@@ -131,8 +131,9 @@ export default function Textbox() {
                   </div>
                 ))}
               </div>
-
-              {data.violations.map((violation, i) => (
+<div className="space-y-6 bg-gray-800/50 rounded-xl p-3 shadow-md border border-gray-700">
+<h1 className=" text-2xl font-bold">Detailed Report</h1>
+  {data.violations.map((violation, i) => (
                 <div
                   key={i}
                   className="mb-6 bg-gray-800 rounded-xl p-6 shadow-md border border-gray-700"
@@ -169,6 +170,8 @@ export default function Textbox() {
                   </ul>
                 </div>
               ))}
+</div>
+              
             </>
           ) : (
             <h3 className="text-green-400 text-2xl text-center mt-4">
