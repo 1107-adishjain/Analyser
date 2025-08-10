@@ -12,7 +12,7 @@ pipeline {
     REPO_URL         = 'https://github.com/1107-adishjain/Analyser.git'
     REMOTE_DIR       = '/home/ubuntu/analyser'
     COMPOSE_DIR      = 'docker'
-    BUILD_NUMBER  x   = "${env.BUILD_NUMBER}"
+    BUILD_NUMBER     = "${env.BUILD_NUMBER}"
   }
 
   stages {
@@ -58,11 +58,11 @@ pipeline {
 
     stage('Build Docker Image') {
       steps {
-        sh """
+        sh '''
           cd docker
           docker build -f Dockerfile -t ${DOCKERHUB_REPO}:${BUILD_NUMBER} ..
           docker tag ${DOCKERHUB_REPO}:${BUILD_NUMBER} ${DOCKERHUB_REPO}:latest
-        """
+        '''
         echo "🐳 Docker image built successfully"
       }
     }
@@ -111,26 +111,38 @@ pipeline {
 
     stage('Deploy to EC2') {
       steps {
-        sshagent (credentials: ['EC2_KEY']) {
-          sh """
-            ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_IP} "
-              set -e
-              echo 'Starting deployment on EC2...'
-              
-              [ -d '${REMOTE_DIR}' ] || git clone ${REPO_URL} ${REMOTE_DIR}
-              
-              cd '${REMOTE_DIR}'
-              git reset --hard
-              git pull origin main
-              
-              cd '${COMPOSE_DIR}'
-              docker compose pull
-              docker compose down || true
-              docker compose up -d
-              
-              echo 'Deployment completed successfully!'
-            "
-          """
+        withCredentials([
+          string(credentialsId: 'supabase-url', variable: 'SUPABASE_URL'),
+          string(credentialsId: 'supabase-anon-key', variable: 'SUPABASE_ANON_KEY')
+        ]) {
+          sshagent (credentials: ['EC2_KEY']) {
+            sh """
+              ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_IP} "
+                set -e
+                echo 'Starting deployment on EC2...'
+                
+                [ -d '${REMOTE_DIR}' ] || git clone ${REPO_URL} ${REMOTE_DIR}
+                
+                cd '${REMOTE_DIR}'
+                git reset --hard
+                git pull origin main
+                
+                cd '${COMPOSE_DIR}'
+                
+                # Create environment file for runtime injection
+                cat > .env.production << 'EOF'
+NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
+NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+EOF
+                
+                docker compose pull
+                docker compose down || true
+                docker compose up -d
+                
+                echo 'Deployment completed successfully!'
+              "
+            """
+          }
         }
       }
     }
