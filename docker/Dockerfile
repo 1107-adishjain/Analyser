@@ -1,5 +1,5 @@
 # Stage 1: Build the Next.js App
-FROM node:18-bullseye-slim AS builder
+FROM node:20-bullseye-slim AS builder
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Lightweight runtime with minimal Chromium setup
-FROM node:18-bullseye-slim
+FROM node:20-bullseye-slim
 
 WORKDIR /app
 

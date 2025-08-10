@@ -129,25 +129,38 @@ pipeline {
                 
                 cd '${COMPOSE_DIR}'
                 
-                # Create environment file for runtime injection
-                cat > .env.production << 'EOF'
-NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
-NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
-EOF
+                # Create environment file with proper format
+                echo 'Creating environment file...'
+                cat > .env.production << EOF
+    NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+    EOF
                 
+                # Verify the file was created
+                echo 'Environment file contents:'
+                cat .env.production
+                
+                # Make sure file has proper permissions
+                chmod 644 .env.production
+                
+                echo 'Pulling and starting containers...'
                 docker compose pull
                 docker compose down || true
                 docker compose up -d
                 
                 echo 'Deployment completed successfully!'
+                
+                # Show container status
+                docker compose ps
+                echo 'Container logs:'
+                docker compose logs frontend
               "
             """
           }
         }
       }
-    }
   }
-
+}
   post {
     always {
       sh '''
