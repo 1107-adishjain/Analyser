@@ -5,7 +5,7 @@ pipeline {
     DOCKER_IMAGE     = 'analyser'
     DOCKERHUB_REPO   = 'adishjain1107/analyser'
     EC2_USER         = 'ubuntu'
-    EC2_IP           = '54.208.182.45'
+    EC2_IP           = '54.234.4.241'
     EC2_SSH_KEY      = credentials('EC2_KEY')
     DOCKERHUB_CREDS  = credentials('dockerhub-credentials')
 //  SONAR_TOKEN     = credentials('sonar-token')
