@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { default as safeSupabase } from './supabase'
 
 // For URL analysis
 export const saveViolationFromUrl = async (userId, url, analysisResult) => {
@@ -6,7 +6,7 @@ export const saveViolationFromUrl = async (userId, url, analysisResult) => {
     const violationsCount = analysisResult.violations ? analysisResult.violations.length : 0
     const score = calculateAccessibilityScore(analysisResult)
 
-    const { data, error } = await supabase
+    const { data, error } = await safeSupabase
       .from('violations')
       .insert([
         {
@@ -34,7 +34,7 @@ export const saveViolationFromHtml = async (userId, html, analysisResult) => {
     const violationsCount = analysisResult.violations ? analysisResult.violations.length : 0
     const score = calculateAccessibilityScore(analysisResult)
 
-    const { data, error } = await supabase
+    const { data, error } = await safeSupabase
       .from('violations')
       .insert([
         {
@@ -58,7 +58,7 @@ export const saveViolationFromHtml = async (userId, html, analysisResult) => {
 
 export const getUserViolations = async (userId) => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await safeSupabase
       .from('violations')
       .select('*')
       .eq('user_id', userId)

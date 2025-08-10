@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react';
-import  {supabase} from '@/lib/supabase';
+import  {default as safeSupabase} from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
 export default function Register() {
@@ -10,7 +10,7 @@ export default function Register() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { error } = await safeSupabase.auth.signUp({ email, password });
     if (error) alert(error.message);
     else {
       alert('Check your email for verification link.');

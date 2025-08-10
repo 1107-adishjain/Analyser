@@ -5,7 +5,7 @@ services:
     image: adishjain1107/analyser:latest
     container_name: nextjs-app
     restart: unless-stopped
-    expose:
+    expose: 
       - 3000
     environment:
       - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}

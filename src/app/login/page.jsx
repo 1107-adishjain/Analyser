@@ -109,7 +109,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from 'next/navigation'; 
-import { supabase } from "@/lib/supabase";
+import { default as safeSupabase } from "@/lib/supabase";
 
 export default function Login() {
   const router = useRouter(); 
@@ -122,7 +122,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await safeSupabase.auth.signInWithPassword({
         email,
         password
       });

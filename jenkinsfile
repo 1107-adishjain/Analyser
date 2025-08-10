@@ -129,37 +129,25 @@ pipeline {
                 
                 cd '${COMPOSE_DIR}'
                 
-                # Create environment file with proper format
-                echo 'Creating environment file...'
-                cat > .env.production << EOF
-    NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
-    NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
-    EOF
+                # FIX: Use printf instead of heredoc to avoid syntax issues
+                printf 'NEXT_PUBLIC_SUPABASE_URL=%s\\nNEXT_PUBLIC_SUPABASE_ANON_KEY=%s\\n' '${SUPABASE_URL}' '${SUPABASE_ANON_KEY}' > .env.production
                 
-                # Verify the file was created
-                echo 'Environment file contents:'
+                # Verify file creation
+                echo 'Environment file created:'
                 cat .env.production
                 
-                # Make sure file has proper permissions
-                chmod 644 .env.production
-                
-                echo 'Pulling and starting containers...'
+                # Restart containers
                 docker compose pull
                 docker compose down || true
                 docker compose up -d
                 
                 echo 'Deployment completed successfully!'
-                
-                # Show container status
-                docker compose ps
-                echo 'Container logs:'
-                docker compose logs frontend
               "
             """
           }
         }
       }
-  }
+    }
 }
   post {
     always {
@@ -177,4 +165,4 @@ pipeline {
       echo '❌ Deployment failed.'
     }
   }
-}
+} 

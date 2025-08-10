@@ -1,7 +1,7 @@
 // src/hooks/useAuth.js
 'use client'
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { default as safeSupabase } from '@/lib/supabase';
 
 export function useAuth() {
   const [user, setUser] = useState(null);
@@ -9,14 +9,14 @@ export function useAuth() {
 
   useEffect(() => {
     const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await safeSupabase.auth.getSession();
       setUser(session?.user ?? null);
       setLoading(false);
     };
 
     getInitialSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: { subscription } } = safeSupabase.auth.onAuthStateChange(
       async (event, session) => {
         setUser(session?.user ?? null);
         setLoading(false);
