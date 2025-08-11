@@ -32,30 +32,6 @@ pipeline {
       }
     }
 
-    // SonarQube stages commented out but kept for reference
-    // stage('SonarQube Analysis') {
-    //   steps {
-    //     withCredentials([string(credentialsId: 'sonar-token', variable: 'SQ_TOKEN')]) {
-    //       sh """
-    //         sonar-scanner \
-    //           -Dsonar.projectKey=analyser-project \
-    //           -Dsonar.sources=src \
-    //           -Dsonar.host.url=http://localhost:9000 \
-    //           -Dsonar.login=$SQ_TOKEN \
-    //           -Dsonar.exclusions=node_modules/**,docker/**
-    //       """
-    //     }
-    //   }
-    // }
-
-    // stage('Quality Gate') {
-    //   steps {
-    //     timeout(time: 30, unit: 'MINUTES') {
-    //       waitForQualityGate abortPipeline: true
-    //     }
-    //   }
-    // }
-
     stage('Build Docker Image') {
       steps {
         sh '''
@@ -129,9 +105,15 @@ pipeline {
                 
                 cd '${COMPOSE_DIR}'
                 
-                export NEXT_PUBLIC_SUPABASE_URL='${SUPABASE_URL}'
-                export NEXT_PUBLIC_SUPABASE_ANON_KEY='${SUPABASE_ANON_KEY}'
+                # Create .env.production file
+                printf 'NEXT_PUBLIC_SUPABASE_URL=%s\\nNEXT_PUBLIC_SUPABASE_ANON_KEY=%s\\n' '${SUPABASE_URL}' '${SUPABASE_ANON_KEY}' > .env.production
                 
+                # Verify file creation
+                echo 'Environment file created:'
+                cat .env.production
+                
+                # Restart containers
+                docker compose pull
                 docker compose down || true
                 docker compose up -d
                 
