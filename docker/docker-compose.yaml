@@ -5,8 +5,6 @@ services:
     restart: unless-stopped
     expose:
       - 3000
-    env_file:
-      - .env.production
     networks:
       - app-network
 
@@ -25,3 +23,4 @@ services:
 networks:
   app-network:
     driver: bridge
+  

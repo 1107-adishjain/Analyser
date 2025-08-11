@@ -1,3 +1,153 @@
+// pipeline {
+//   agent any
+
+//   environment { 
+//     DOCKER_IMAGE     = 'analyser'
+//     DOCKERHUB_REPO   = 'adishjain1107/analyser'
+//     EC2_USER         = 'ubuntu'
+//     EC2_IP           = '18.209.55.68'
+//     EC2_SSH_KEY      = credentials('EC2_KEY')
+//     DOCKERHUB_CREDS  = credentials('dockerhub-credentials')
+// //  SONAR_TOKEN     = credentials('sonar-token')
+//     REPO_URL         = 'https://github.com/1107-adishjain/Analyser.git'
+//     REMOTE_DIR       = '/home/ubuntu/analyser'
+//     COMPOSE_DIR      = 'docker'
+//     BUILD_NUMBER     = "${env.BUILD_NUMBER}"
+//   }
+
+//   stages {
+//     stage('Checkout') {
+//       steps {
+//         git url: "${REPO_URL}", branch: 'main'
+//         echo "🔄 Code checked out successfully"
+//       }
+//     }
+    
+//     stage('Lint Code') {
+//       steps {
+//         dir('docker') {
+//           sh 'npm run lint || echo "Linting completed with warnings"'
+//         }
+//         echo "✅ Code linting completed"
+//       }
+//     }
+
+//     stage('Build Docker Image') {
+//       steps {
+//         sh '''
+//           cd docker
+//           docker build -f Dockerfile -t ${DOCKERHUB_REPO}:${BUILD_NUMBER} ..
+//           docker tag ${DOCKERHUB_REPO}:${BUILD_NUMBER} ${DOCKERHUB_REPO}:latest
+//         '''
+//         echo "🐳 Docker image built successfully"
+//       }
+//     }
+
+//     stage('Push to DockerHub') {
+//       steps {
+//         withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials',
+//                                           usernameVariable: 'DH_USER',
+//                                           passwordVariable: 'DH_PSW')]) {
+//           sh '''
+//             echo "$DH_PSW" | docker login -u "$DH_USER" --password-stdin
+            
+//             # Check if image already exists on DockerHub
+//             if docker manifest inspect ${DOCKERHUB_REPO}:${BUILD_NUMBER} > /dev/null 2>&1; then
+//               echo "🔍 Image already exists, skipping build-specific push"
+//             else
+//               echo "📤 Pushing new image..."
+//               docker push ${DOCKERHUB_REPO}:${BUILD_NUMBER}
+//             fi
+            
+//             # Always update latest tag
+//             echo "📤 Updating latest tag..."
+//             docker tag ${DOCKERHUB_REPO}:${BUILD_NUMBER} ${DOCKERHUB_REPO}:latest
+            
+//             # Push latest with retry mechanism
+//             for attempt in 1 2 3; do
+//               if docker push ${DOCKERHUB_REPO}:latest; then
+//                 echo "✅ Latest tag updated successfully on attempt $attempt"
+//                 break
+//               else
+//                 echo "⚠️  Latest push attempt $attempt failed, retrying in $((attempt*5)) seconds..."
+//                 sleep $((attempt*5))
+//                 if [ $attempt -eq 3 ]; then
+//                   echo "❌ Failed to push latest after 3 attempts"
+//                   exit 0
+//                 fi
+//               fi
+//             done
+            
+//             docker logout
+//           '''
+//         }
+//         echo "🚀 Images pushed to DockerHub successfully"
+//       }
+//     }
+
+//     stage('Deploy to EC2') {
+//       steps {
+//         withCredentials([
+//           string(credentialsId: 'supabase-url', variable: 'SUPABASE_URL'),
+//           string(credentialsId: 'supabase-anon-key', variable: 'SUPABASE_ANON_KEY')
+//         ]) {
+//           sshagent (credentials: ['EC2_KEY']) {
+//             sh """
+//               ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_IP} "
+//                 set -e
+//                 echo 'Starting deployment on EC2...'
+                
+//                 [ -d '${REMOTE_DIR}' ] || git clone ${REPO_URL} ${REMOTE_DIR}
+                
+//                 cd '${REMOTE_DIR}'
+//                 git reset --hard
+//                 git pull origin main
+                
+//                 cd '${COMPOSE_DIR}'
+                
+//                 # Create .env.production file
+//                 printf 'NEXT_PUBLIC_SUPABASE_URL=%s\\nNEXT_PUBLIC_SUPABASE_ANON_KEY=%s\\n' '${SUPABASE_URL}' '${SUPABASE_ANON_KEY}' > .env.production
+                
+//                 # Verify file creation
+//                 echo 'Environment file created:'
+//                 cat .env.production
+                
+//                 # Export for build process
+//                 export NEXT_PUBLIC_SUPABASE_URL='${SUPABASE_URL}'
+//                 export NEXT_PUBLIC_SUPABASE_ANON_KEY='${SUPABASE_ANON_KEY}'
+                
+//                 # Force rebuild and restart
+//                 docker compose down || true
+//                 docker compose build --no-cache
+//                 docker compose up -d
+                
+//                 echo 'Deployment completed successfully!'
+//               "
+//             """
+//           }
+//         }
+//       }
+//     }
+//   }
+  
+//   post {
+//     always {
+//       sh '''
+//         echo "🧹 Cleaning up Jenkins server..."
+//         docker system prune -f
+//         docker image prune -a -f
+//         docker logout || true
+//       '''
+//     }
+//     success {
+//       echo '✅ Deployment successful!'
+//     }
+//     failure {
+//       echo '❌ Deployment failed.'
+//     }
+//   }
+// }
+
 pipeline {
   agent any
 
@@ -8,7 +158,6 @@ pipeline {
     EC2_IP           = '18.209.55.68'
     EC2_SSH_KEY      = credentials('EC2_KEY')
     DOCKERHUB_CREDS  = credentials('dockerhub-credentials')
-//  SONAR_TOKEN     = credentials('sonar-token')
     REPO_URL         = 'https://github.com/1107-adishjain/Analyser.git'
     REMOTE_DIR       = '/home/ubuntu/analyser'
     COMPOSE_DIR      = 'docker'
@@ -32,14 +181,23 @@ pipeline {
       }
     }
 
-    stage('Build Docker Image') {
+    stage('Build Docker Image with Environment Variables') {
       steps {
-        sh '''
-          cd docker
-          docker build -f Dockerfile -t ${DOCKERHUB_REPO}:${BUILD_NUMBER} ..
-          docker tag ${DOCKERHUB_REPO}:${BUILD_NUMBER} ${DOCKERHUB_REPO}:latest
-        '''
-        echo "🐳 Docker image built successfully"
+        withCredentials([
+          string(credentialsId: 'supabase-url', variable: 'SUPABASE_URL'),
+          string(credentialsId: 'supabase-anon-key', variable: 'SUPABASE_ANON_KEY')
+        ]) {
+          sh '''
+            cd docker
+            # Build with environment variables as build arguments
+            docker build -f Dockerfile \
+              --build-arg NEXT_PUBLIC_SUPABASE_URL="$SUPABASE_URL" \
+              --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+              -t ${DOCKERHUB_REPO}:${BUILD_NUMBER} ..
+            docker tag ${DOCKERHUB_REPO}:${BUILD_NUMBER} ${DOCKERHUB_REPO}:latest
+          '''
+        }
+        echo "🐳 Docker image built with environment variables successfully"
       }
     }
 
@@ -51,76 +209,44 @@ pipeline {
           sh '''
             echo "$DH_PSW" | docker login -u "$DH_USER" --password-stdin
             
-            # Check if image already exists on DockerHub
-            if docker manifest inspect ${DOCKERHUB_REPO}:${BUILD_NUMBER} > /dev/null 2>&1; then
-              echo "🔍 Image already exists, skipping build-specific push"
-            else
-              echo "📤 Pushing new image..."
-              docker push ${DOCKERHUB_REPO}:${BUILD_NUMBER}
-            fi
+            # Always push both tags
+            echo "📤 Pushing build-specific image..."
+            docker push ${DOCKERHUB_REPO}:${BUILD_NUMBER}
             
-            # Always update latest tag
-            echo "📤 Updating latest tag..."
-            docker tag ${DOCKERHUB_REPO}:${BUILD_NUMBER} ${DOCKERHUB_REPO}:latest
-            
-            # Push latest with retry mechanism
-            for attempt in 1 2 3; do
-              if docker push ${DOCKERHUB_REPO}:latest; then
-                echo "✅ Latest tag updated successfully on attempt $attempt"
-                break
-              else
-                echo "⚠️  Latest push attempt $attempt failed, retrying in $((attempt*5)) seconds..."
-                sleep $((attempt*5))
-                if [ $attempt -eq 3 ]; then
-                  echo "❌ Failed to push latest after 3 attempts"
-                  exit 0
-                fi
-              fi
-            done
+            echo "📤 Pushing latest tag..."
+            docker push ${DOCKERHUB_REPO}:latest
             
             docker logout
           '''
         }
-        echo "🚀 Images pushed to DockerHub successfully"
+        echo "🚀 Images with environment variables pushed to DockerHub successfully"
       }
     }
 
     stage('Deploy to EC2') {
       steps {
-        withCredentials([
-          string(credentialsId: 'supabase-url', variable: 'SUPABASE_URL'),
-          string(credentialsId: 'supabase-anon-key', variable: 'SUPABASE_ANON_KEY')
-        ]) {
-          sshagent (credentials: ['EC2_KEY']) {
-            sh """
-              ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_IP} "
-                set -e
-                echo 'Starting deployment on EC2...'
-                
-                [ -d '${REMOTE_DIR}' ] || git clone ${REPO_URL} ${REMOTE_DIR}
-                
-                cd '${REMOTE_DIR}'
-                git reset --hard
-                git pull origin main
-                
-                cd '${COMPOSE_DIR}'
-                
-                # Create .env.production file
-                printf 'NEXT_PUBLIC_SUPABASE_URL=%s\\nNEXT_PUBLIC_SUPABASE_ANON_KEY=%s\\n' '${SUPABASE_URL}' '${SUPABASE_ANON_KEY}' > .env.production
-                
-                # Verify file creation
-                echo 'Environment file created:'
-                cat .env.production
-                
-                # Restart containers
-                docker compose pull
-                docker compose down || true
-                docker compose up -d
-                
-                echo 'Deployment completed successfully!'
-              "
-            """
-          }
+        sshagent (credentials: ['EC2_KEY']) {
+          sh """
+            ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_IP} "
+              set -e
+              echo 'Starting deployment on EC2...'
+              
+              [ -d '${REMOTE_DIR}' ] || git clone ${REPO_URL} ${REMOTE_DIR}
+              
+              cd '${REMOTE_DIR}'
+              git reset --hard
+              git pull origin main
+              
+              cd '${COMPOSE_DIR}'
+              
+              # Pull the latest image with embedded environment variables
+              docker compose pull
+              docker compose down || true
+              docker compose up -d
+              
+              echo 'Deployment completed successfully!'
+            "
+          """
         }
       }
     }
