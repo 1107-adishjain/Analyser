@@ -125,20 +125,13 @@ pipeline {
                 
                 cd '${REMOTE_DIR}'
                 git reset --hard
-           
                 git pull origin main
                 
                 cd '${COMPOSE_DIR}'
                 
-                # FIX: Use printf instead of heredoc to avoid syntax issues
-                printf 'NEXT_PUBLIC_SUPABASE_URL=%s\\nNEXT_PUBLIC_SUPABASE_ANON_KEY=%s\\n' '${SUPABASE_URL}' '${SUPABASE_ANON_KEY}' > .env.production
+                export NEXT_PUBLIC_SUPABASE_URL='${SUPABASE_URL}'
+                export NEXT_PUBLIC_SUPABASE_ANON_KEY='${SUPABASE_ANON_KEY}'
                 
-                # Verify file creation
-                echo 'Environment file created:'
-                cat .env.production
-                
-                # Restart containers
-                docker compose pull
                 docker compose down || true
                 docker compose up -d
                 
@@ -149,7 +142,8 @@ pipeline {
         }
       }
     }
-}
+  }
+  
   post {
     always {
       sh '''
@@ -166,4 +160,4 @@ pipeline {
       echo '❌ Deployment failed.'
     }
   }
-} 
+}

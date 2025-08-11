@@ -6,8 +6,8 @@ services:
     expose:
       - 3000
     environment:
-      - NEXT_PUBLIC_SUPABASE_URL=https://mbbypilbyqzduczozlrx.supabase.co
-      - NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1iYnlwaWxieXF6ZHVjem96bHJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQxNTgzMTQsImV4cCI6MjA2OTczNDMxNH0.rK3bobZ7E0fqhsJ-ocP3BzYfml8IzJJ_K7BG6rLCooc
+      - NEXT_PUBLIC_SUPABASE_URL
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY
     networks:
       - app-network
 
