@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   frontend:
     image: adishjain1107/analyser:latest
@@ -25,3 +23,4 @@ services:
 networks:
   app-network:
     driver: bridge
+  
