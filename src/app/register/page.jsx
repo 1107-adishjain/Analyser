@@ -1,8 +1,7 @@
-"use client"
-import { useState } from "react"
-import { supabase } from "@/lib/supabase"
-import { useRouter } from "next/navigation"
-import { ScanFace, Mail, Lock, Sparkles, Star, Crown } from "lucide-react"
+'use client'
+import { useState } from 'react';
+import  {supabase} from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 
 export default function Register() {
   const [email, setEmail] = useState("")
@@ -11,16 +10,12 @@ export default function Register() {
   const router = useRouter()
 
   const handleRegister = async (e) => {
-    e.preventDefault()
-    setIsLoading(true)
-
-    const { error } = await supabase.auth.signUp({ email, password })
-
-    if (error) {
-      alert(error.message)
-    } else {
-      alert("Check your email for verification link.")
-      router.push("/login")
+    e.preventDefault();
+    const { error } = await supabase.auth.signUp({ email, password });
+    if (error) alert(error.message);
+    else {
+      alert('Check your email for verification link.');
+      router.push('/login');
     }
 
     setIsLoading(false)
