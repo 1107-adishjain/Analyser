@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import  {supabase} from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
+import { Mail, Lock } from 'lucide-react'; 
 
 export default function Register() {
   const [email, setEmail] = useState("")
