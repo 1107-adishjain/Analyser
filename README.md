@@ -128,11 +128,3 @@ The `jenkinsfile` defines the automated build, test, and deployment process.
 *   **Client-Side State Management:** React's `useState` hook is used effectively in components like `Body`, `Textbox`, and `Urlbox` to manage UI state (e.g., input values, loading status, analysis results).
 *   **Authentication Flow:** The `useAuth` hook centralizes authentication logic, making it easy to check user status and manage sessions across the application.
 *   **Code Organization:** Components are organized within the `src/app/component` directory, promoting modularity and maintainability. Utility functions and hooks are placed in `src/lib` and `src/hooks` respectively.
-
-## Common Pitfalls and Gotchas
-
-*   **Puppeteer Timeout Issues:** When analyzing slow-loading or complex websites, Puppeteer's default timeouts might be exceeded. The `protocolTimeout` and `timeout` options in `puppeteer.launch` are set to 60 seconds to mitigate this. Ensure these are sufficient for typical analysis scenarios.
-*   **Supabase Configuration:** The application relies heavily on Supabase. Ensure that `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` environment variables are correctly set in the deployment environment (e.g., Jenkins build environment variables) for both the application and the Docker build. The `src/lib/supabase.js` file includes checks and warnings for missing configuration.
-*   **CORS Issues:** When running locally or in different network environments, ensure that API requests are not blocked by Cross-Origin Resource Sharing (CORS) policies. Next.js API routes generally handle this well, but custom configurations or proxy setups might require attention.
-*   **`headless: true` vs. `headless: 'new'`:** Puppeteer's `headless` option has evolved. While `'new'` is the modern default, older configurations might use `true`. Ensure compatibility if updating Puppeteer versions. The current implementation uses `headless: true`.
-*   **`--no-sandbox` Argument:** The `--no-sandbox` argument is crucial for running Puppeteer in certain containerized environments (like Docker) where a full sandbox might not be available or desirable. Ensure this argument is present in `puppeteer.launch` for reliable execution.
