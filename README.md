@@ -1,4 +1,4 @@
-# Introduction to Analyser
+<!-- # Introduction to Analyser
 
 Welcome to Analyser, a powerful web accessibility analysis tool designed to help developers and designers create more inclusive digital experiences. This repository contains the source code for a Next.js application that leverages the `axe-core` library to perform automated accessibility checks on web content.
 
@@ -115,4 +115,13 @@ The `jenkinsfile` defines a CI/CD pipeline that automates the build, test, and d
 *   **Timeouts:** Configure appropriate timeouts for Puppeteer operations to prevent deadlocks.
 *   **CORS:** Be mindful of Cross-Origin Resource Sharing (CORS) policies if the frontend and backend are served from different domains. Next.js API routes generally handle this implicitly for same-origin requests.
 *   **Supabase Key Exposure:** Ensure Supabase keys are stored securely as environment variables and that public keys are prefixed with `NEXT_PUBLIC_` for client-side access.
+ -->
 
+
+
+I have created nginx file , docker file and docker compose file metrics for monitoring
+and jenkins file for CI/CD and githubactions/deploy.yml file also for CI/CD
+database.js and supabase.js for database linking. 
+hooks for It listens for real-time authentication changes (login, logout, sign in, sign out) and updates the user and loading states automatically.
+It provides a signOut function to log out the current user.
+When you use this hook, you can instantly know if a user is logged in and access their data, show loading spinners, or let users log out—all in a reusable, clean way.
