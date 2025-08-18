@@ -76,7 +76,7 @@ const UserModelComponent = ({ user ,setAuth ,setUser }) => {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem>Profile</DropdownMenuItem>
-        <DropdownMenuItem>Billing</DropdownMenuItem>
+        <Link href="/reports"><DropdownMenuItem>Reports</DropdownMenuItem></Link>
         <DropdownMenuItem>Team</DropdownMenuItem>
         <DropdownMenuItem>Subscription</DropdownMenuItem>
 
