@@ -2,18 +2,18 @@ pipeline {
   agent any
 
   environment { 
-    DOCKER_IMAGE     = 'analyser'
-    DOCKERHUB_REPO   = 'adishjain1107/analyser'
-    EC2_USER         = 'ubuntu'
-    EC2_IP           = '18.209.55.68'
-    EC2_SSH_KEY      = credentials('EC2_KEY')
-    DOCKERHUB_CREDS  = credentials('dockerhub-credentials')
-    REPO_URL         = 'https://github.com/1107-adishjain/Analyser.git'
-    REMOTE_DIR       = '/home/ubuntu/analyser'
-    COMPOSE_DIR      = 'docker'
-    BUILD_NUMBER     = "${env.BUILD_NUMBER}"
+    DOCKER_IMAGE      = 'analyser'
+    DOCKERHUB_REPO    = 'adishjain1107/analyser'
+    EC2_USER          = 'ubuntu'
+    EC2_IP            = '3.82.19.252'
+    EC2_SSH_KEY       = credentials('EC2_KEY')
+    DOCKERHUB_CREDS   = credentials('dockerhub-credentials')
+    REPO_URL          = 'https://github.com/1107-adishjain/Analyser.git'
+    REMOTE_DIR        = '/home/ubuntu/analyser'
+    COMPOSE_DIR       = 'docker'
+    BUILD_NUMBER      = "${env.BUILD_NUMBER}"
   }
-
+  
   stages {
     stage('Checkout') {
       steps {
@@ -40,9 +40,9 @@ pipeline {
           sh '''
             cd docker
             # Build with environment variables as build arguments
-            docker build -f Dockerfile \
-              --build-arg NEXT_PUBLIC_SUPABASE_URL="$SUPABASE_URL" \
-              --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+            docker build -f Dockerfile \\
+              --build-arg NEXT_PUBLIC_SUPABASE_URL="$SUPABASE_URL" \\
+              --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \\
               -t ${DOCKERHUB_REPO}:${BUILD_NUMBER} ..
             docker tag ${DOCKERHUB_REPO}:${BUILD_NUMBER} ${DOCKERHUB_REPO}:latest
           '''
@@ -75,33 +75,40 @@ pipeline {
 
     stage('Deploy to EC2') {
       steps {
-        sshagent (credentials: ['EC2_KEY']) {
-          sh """
-            ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_IP} "
-              set -e
-              echo 'Starting deployment on EC2...'
-              
-              [ -d '${REMOTE_DIR}' ] || git clone ${REPO_URL} ${REMOTE_DIR}
-              
-              cd '${REMOTE_DIR}'
-              git reset --hard
-              git pull origin main
-              
-              cd '${COMPOSE_DIR}'
-              
-              # Pull the latest image with embedded environment variables
-              docker compose pull
-              docker compose down || true
-              docker compose up -d
-              
-              echo 'Deployment completed successfully!'
-            "
-          """
+        // Securely load the metrics token credential into a pipeline variable
+        withCredentials([string(credentialsId: 'metrics-token', variable: 'METRICS_SECRET_TOKEN')]) {
+          sshagent (credentials: ['EC2_KEY']) {
+            sh """
+              ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_IP} "
+                set -e
+                echo 'Starting deployment on EC2...'
+                
+                [ -d '${REMOTE_DIR}' ] || git clone ${REPO_URL} ${REMOTE_DIR}
+                
+                cd '${REMOTE_DIR}'
+                git reset --hard
+                git pull origin main
+                
+                cd '${COMPOSE_DIR}'
+
+                # ✅ Dynamically create the .env file on the server with the secret
+                echo 'Creating .env file with METRICS_SECRET_TOKEN...'
+                echo 'METRICS_SECRET_TOKEN=${METRICS_SECRET_TOKEN}' > .env
+                
+                # Pull the latest image and restart services
+                docker compose pull
+                docker compose down || true
+                docker compose up -d
+                
+                echo 'Deployment completed successfully!'
+              "
+            """
+          }
         }
       }
     }
   }
-  
+ 
   post {
     always {
       sh '''

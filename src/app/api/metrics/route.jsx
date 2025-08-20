@@ -12,10 +12,9 @@ register.registerMetric(httpRequestCounter);
 export async function GET(req) {
   httpRequestCounter.inc();
 
-  // ✅ allow only Prometheus (Docker internal or localhost)
-  const ip = req.headers.get("x-forwarded-for") || req.ip || "unknown";
-
-  if (!((ip.includes("172.") || ip.includes("host.docker.internal")))) {
+  // Token-based security check
+  const token = req.headers.get("x-metrics-token");
+  if (token !== process.env.METRICS_SECRET_TOKEN) {
     return new Response("Forbidden", { status: 403 });
   }
 
