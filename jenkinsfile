@@ -5,7 +5,7 @@ pipeline {
     DOCKER_IMAGE      = 'analyser'
     DOCKERHUB_REPO    = 'adishjain1107/analyser'
     EC2_USER          = 'ubuntu'
-    EC2_IP            = '3.82.19.252'
+    EC2_IP            = '54.226.217.255'
     EC2_SSH_KEY       = credentials('EC2_KEY')
     DOCKERHUB_CREDS   = credentials('dockerhub-credentials')
     REPO_URL          = 'https://github.com/1107-adishjain/Analyser.git'
@@ -13,7 +13,7 @@ pipeline {
     COMPOSE_DIR       = 'docker'
     BUILD_NUMBER      = "${env.BUILD_NUMBER}"
   }
-  
+
   stages {
     stage('Checkout') {
       steps {
@@ -76,7 +76,7 @@ pipeline {
     stage('Deploy to EC2') {
       steps {
         // Securely load the metrics token credential into a pipeline variable
-        withCredentials([string(credentialsId: 'metrics-token', variable: 'METRICS_SECRET_TOKEN')]) {
+        withCredentials([string(credentialsId: 'metrics-secret-token', variable: 'METRICS_TOKEN_SECRET_VALUE')]) {
           sshagent (credentials: ['EC2_KEY']) {
             sh """
               ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_IP} "
@@ -91,9 +91,12 @@ pipeline {
                 
                 cd '${COMPOSE_DIR}'
 
-                # ✅ Dynamically create the .env file on the server with the secret
-                echo 'Creating .env file with METRICS_SECRET_TOKEN...'
-                echo 'METRICS_SECRET_TOKEN=${METRICS_SECRET_TOKEN}' > .env
+                # ✅ Dynamically create the secret files on the server
+                echo 'Creating .env file for frontend...'
+                echo "METRICS_SECRET_TOKEN=${METRICS_TOKEN_SECRET_VALUE}" > .env
+
+                echo 'Creating token file for Prometheus...'
+                echo "${METRICS_TOKEN_SECRET_VALUE}" > metrics_token
                 
                 # Pull the latest image and restart services
                 docker compose pull
