@@ -75,10 +75,9 @@ pipeline {
 
     stage('Deploy to EC2') {
       steps {
-        // Securely load the metrics token credential into a pipeline variable
         withCredentials([string(credentialsId: 'metrics-secret-token', variable: 'METRICS_TOKEN_SECRET_VALUE')]) {
           sshagent (credentials: ['EC2_KEY']) {
-            sh """
+            sh '''
               ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_IP} "
                 set -e
                 echo 'Starting deployment on EC2...'
@@ -91,7 +90,6 @@ pipeline {
                 
                 cd '${COMPOSE_DIR}'
 
-                # ✅ Dynamically create the secret files on the server
                 echo 'Creating .env file for frontend...'
                 echo "METRICS_SECRET_TOKEN=${METRICS_TOKEN_SECRET_VALUE}" > .env
 
@@ -105,7 +103,7 @@ pipeline {
                 
                 echo 'Deployment completed successfully!'
               "
-            """
+            '''
           }
         }
       }
