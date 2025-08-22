@@ -6,38 +6,36 @@ on:
   workflow_dispatch:
 
 env:
-  DOCKER_IMAGE: analyser
   DOCKERHUB_REPO: adishjain1107/analyser
   EC2_USER: ubuntu
-  EC2_IP: 18.209.55.68
+  EC2_IP: 3.93.174.94
+  REPO_URL: https://github.com/1107-adishjain/Analyser.git
   REMOTE_DIR: /home/ubuntu/analyser
-  COMPOSE_DIR: docker
+  COMPOSE_DIR: /home/ubuntu/analyser/docker
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout
+    - name: Checkout Repository
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        
-    - name: Set up Node.js
+      
+    - name: Set up Node.js for Linting
       uses: actions/setup-node@v4
       with:
         node-version: '20'
         cache: 'npm'
-        cache-dependency-path: package-lock.json 
-        
-    - name: Install dependencies
-      run: npm install  
-        
+        cache-dependency-path: '**/package-lock.json'
+
+    - name: Install Linting Dependencies
+      run: npm install
+      working-directory: ./docker
+
     - name: Lint Code
-      run: |
-        npm run lint || echo "Linting completed with warnings"
-        echo "✅ Code linting completed"
-        
+      run: npm run lint || echo "Linting completed with warnings"
+      working-directory: ./docker
+      
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
       
@@ -49,26 +47,23 @@ jobs:
         
     - name: Build Docker Image with Environment Variables
       run: |
-        cd docker
-        # Build with environment variables as build arguments
-        docker build -f Dockerfile \
+        docker build -f docker/Dockerfile \
           --build-arg NEXT_PUBLIC_SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
           --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}" \
-          -t ${{ env.DOCKERHUB_REPO }}:${{ github.run_number }} ..
-        docker tag ${{ env.DOCKERHUB_REPO }}:${{ github.run_number }} ${{ env.DOCKERHUB_REPO }}:latest
+          -t ${{ env.DOCKERHUB_REPO }}:${{ github.run_number }} \
+          -t ${{ env.DOCKERHUB_REPO }}:latest .
         echo "🐳 Docker image built with environment variables successfully"
-        
+      
     - name: Push to DockerHub
       run: |
-        # Always push both tags
         echo "📤 Pushing build-specific image..."
         docker push ${{ env.DOCKERHUB_REPO }}:${{ github.run_number }}
         
         echo "📤 Pushing latest tag..."
         docker push ${{ env.DOCKERHUB_REPO }}:latest
         
-        echo "🚀 Images with environment variables pushed to DockerHub successfully"
-        
+        echo "🚀 Images pushed to DockerHub successfully"
+      
     - name: Deploy to EC2
       uses: appleboy/ssh-action@v1.0.3
       with:
@@ -79,25 +74,30 @@ jobs:
           set -e
           echo 'Starting deployment on EC2...'
           
-          [ -d '${{ env.REMOTE_DIR }}' ] || git clone https://github.com/1107-adishjain/Analyser.git ${{ env.REMOTE_DIR }}
+          [ -d '${{ env.REMOTE_DIR }}' ] || git clone ${{ env.REPO_URL }} ${{ env.REMOTE_DIR }}
           
           cd '${{ env.REMOTE_DIR }}'
           git reset --hard
           git pull origin main
-          
+
+          echo "Creating token file for Prometheus..."
+          echo "${{ secrets.METRICS_TOKEN_SECRET_VALUE }}" > metrics_token
+      
           cd '${{ env.COMPOSE_DIR }}'
-          
-          # Pull the latest image with embedded environment variables
+
+          echo "Creating .env file for frontend..."
+          echo "METRICS_SECRET_TOKEN=${{ secrets.METRICS_TOKEN_SECRET_VALUE }}" > .env
+
+          echo "Pulling latest Docker image and restarting services..."
           docker compose pull
           docker compose down || true
           docker compose up -d
           
-          echo 'Deployment completed successfully!'
-          
-    - name: Cleanup
+          echo '✅ Deployment completed successfully!'
+        
+    - name: Cleanup Runner
       if: always()
       run: |
         echo "🧹 Cleaning up GitHub Actions runner..."
-        docker system prune -f || true
-        docker image prune -a -f || true
+        docker system prune -af
         docker logout || true
