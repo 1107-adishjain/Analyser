@@ -58,66 +58,9 @@ The primary goal of the Accessibility Analyzer is to promote inclusive web desig
 ![Architecture Diagram](./dfd.png)
 
 ---
+## 🏗️ File structure
 
-## 📂 Repository File Structure
-.
-├── docker/
-│   ├── Dockerfile
-│   ├── docker-compose.yml
-│   └── ... (other docker-related files)
-├── nginx/
-│   └── nginx.conf
-├── src/
-│   ├── app/
-│   │   ├── api/
-│   │   │   ├── analyseURL/
-│   │   │   │   └── route.jsx
-│   │   │   ├── analysehtml/
-│   │   │   │   └── route.jsx
-│   │   │   └── metrics/
-│   │   │       └── route.jsx
-│   │   ├── component/
-│   │   │   ├── about.jsx
-│   │   │   ├── body.jsx
-│   │   │   ├── html.jsx
-│   │   │   ├── navbar.jsx
-│   │   │   └── url.jsx
-│   │   ├── globals.css
-│   │   ├── layout.js
-│   │   ├── login/
-│   │   │   └── page.jsx
-│   │   ├── page.js
-│   │   ├── register/
-│   │   │   └── page.jsx
-│   │   └── reports/
-│   │       └── page.jsx
-│   ├── components/
-│   │   └── ui/
-│   │       ├── button.jsx
-│   │       ├── dropdown-menu.jsx
-│   │       └── progress.jsx
-│   ├── hooks/
-│   │   └── useAuth.js
-│   ├── lib/
-│   │   ├── database.js
-│   │   ├── postgre.sql
-│   │   └── supabase.js
-│   └── utils/
-│       └── utils.js
-├── .eslintrc.cjs
-├── .gitignore
-├── .next/
-├── eslint.config.mjs
-├── jenkinsfile
-├── next.config.mjs
-├── package.json
-├── postcss.config.js
-├── prometheus.yml
-├── README.md
-├── tailwind.config.js
-└── tsconfig.json
-
-
+![File-structure Diagram](./file_structure.png)
 
 
 ### Key Files and Directories
