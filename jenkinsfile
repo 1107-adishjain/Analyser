@@ -5,7 +5,7 @@ pipeline {
     DOCKER_IMAGE      = 'analyser'
     DOCKERHUB_REPO    = 'adishjain1107/analyser'
     EC2_USER          = 'ubuntu'
-    EC2_IP            = '54.226.217.255'
+    EC2_IP            = '3.93.174.94'
     EC2_SSH_KEY       = credentials('EC2_KEY')
     DOCKERHUB_CREDS   = credentials('dockerhub-credentials')
     REPO_URL          = 'https://github.com/1107-adishjain/Analyser.git'
@@ -87,15 +87,15 @@ pipeline {
                 cd '${REMOTE_DIR}'
                 git reset --hard
                 git pull origin main
-                
+
+                echo 'Creating token file for Prometheus...'
+                echo "${METRICS_TOKEN_SECRET_VALUE}" > metrics_token
+            
                 cd '${COMPOSE_DIR}'
 
                 echo 'Creating .env file for frontend...'
                 echo "METRICS_SECRET_TOKEN=${METRICS_TOKEN_SECRET_VALUE}" > .env
 
-                echo 'Creating token file for Prometheus...'
-                echo "${METRICS_TOKEN_SECRET_VALUE}" > metrics_token
-                
                 # Pull the latest image and restart services
                 docker compose pull
                 docker compose down || true

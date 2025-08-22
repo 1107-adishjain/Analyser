@@ -27,7 +27,7 @@ services:
     container_name: prometheus
     volumes:
       - ../prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./metrics_token:/etc/prometheus/secrets/metrics_token:ro
+      - ../metrics_token:/etc/prometheus/secrets/metrics_token:ro
     ports:
       - "9090:9090"
     networks:
