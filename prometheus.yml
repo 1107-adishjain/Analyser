@@ -1,12 +1,15 @@
 global:
-  scrape_interval: 15s   # how often to scrape
+  scrape_interval: 15s
 
 scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
 
-  - job_name: 'my-website'
+  - job_name: 'analyser'
     static_configs:
-      - targets: ['host.docker.internal:3000'] #targets can be changed based on way prometheus is installed on your system.
- 
+      - targets: ['nginx:80']
+    metrics_path: '/api/metrics'
+    authorization:
+      type: 'Bearer'
+      credentials_file: '/etc/prometheus/secrets/metrics_token'
