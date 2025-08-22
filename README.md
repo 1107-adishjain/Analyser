@@ -1,130 +1,136 @@
-# Analyser Repository: Introduction
+# Accessibility Analyzer
 
-## Overview
+The Accessibility Analyzer is a web application designed to help developers and designers identify and rectify accessibility issues within web content. It leverages the power of `axe-core`, a leading accessibility testing engine, to provide comprehensive reports on both raw HTML snippets and live web pages.
 
-The Analyser project is a web application designed to help developers and designers identify and fix accessibility issues in web content. It leverages the power of `axe-core`, a leading accessibility testing engine, to provide detailed reports on compliance with WCAG (Web Content Accessibility Guidelines) standards. The application supports analysis of both raw HTML snippets and live website URLs.
+## Goals and Functionality
 
-## Goals
+The primary goal of the Accessibility Analyzer is to promote inclusive web design and development by making accessibility testing straightforward and accessible.
 
-The primary goals of the Analyser project are:
+### Core Functionality:
 
-*   **Promote Web Accessibility:** To make the web more inclusive by providing accessible tools for developers.
-*   **Identify and Remediate Issues:** To empower users to find and fix accessibility barriers in their web projects.
-*   **Ease of Use:** To offer a user-friendly interface for both HTML and URL-based analysis.
-*   **Developer Empowerment:** To provide actionable insights and detailed reports that aid in the development process.
+1.  **HTML Analysis:**
+    *   Allows users to paste raw HTML code directly into a text area.
+    *   Upon submission, the application analyzes the provided HTML for accessibility violations using `axe-core`.
+    *   **Integration:** The `src/app/api/analysehtml/route.jsx` API endpoint handles this process. It uses `puppeteer` to render the HTML in a headless browser environment and injects the `axe-core` script for analysis.
 
-## Technologies Used
+2.  **URL Analysis:**
+    *   Enables users to input a URL of a live website.
+    *   The application fetches the content of the specified URL and performs an accessibility analysis using `axe-core`.
+    *   **Integration:** The `src/app/api/analyseURL/route.jsx` API endpoint manages this functionality. It also utilizes `puppeteer` to navigate to the URL, load the page, and run `axe-core`.
 
-The Analyser project is built using a modern technology stack:
+3.  **Accessibility Reporting:**
+    *   Presents analysis results in a clear, structured format.
+    *   Reports include:
+        *   A summary of passes and violations.
+        *   A breakdown of violations by impact level (critical, serious, moderate, minor).
+        *   Detailed information for each violation, including its ID, description, help URL, and the specific HTML nodes affected.
+    *   **Integration:** The UI components `src/app/component/html.jsx` and `src/app/component/url.jsx` are responsible for displaying these reports.
 
-*   **Frontend:**
-    *   **Next.js:** A React framework for building server-rendered and static web applications. It provides a robust structure for routing, API routes, and component-based development.
-    *   **Tailwind CSS:** A utility-first CSS framework for rapid UI development.
-    *   **React:** A JavaScript library for building user interfaces.
-*   **Backend/API:**
-    *   **Next.js API Routes:** Used to handle backend logic, including interacting with `axe-core` and external services.
-    *   **Puppeteer:** A Node.js library that provides a high-level API to control Chrome or Chromium over the DevTools Protocol. It's used here to launch a headless browser instance for running `axe-core` on web pages.
-    *   **axe-core:** The core accessibility testing engine that performs the actual analysis.
-*   **Infrastructure & CI/CD:**
-    *   **Docker:** Containerization for consistent deployment environments.
-    *   **Jenkins:** Continuous Integration/Continuous Deployment (CI/CD) for automating build, test, and deployment pipelines.
-    *   **Nginx:** A web server and reverse proxy used for routing traffic and serving the application.
-    *   **EC2:** Cloud computing instances for hosting the deployed application.
-    *   **DockerHub:** Container registry for storing and distributing Docker images.
-*   **Database:**
-    *   **Supabase:** An open-source Firebase alternative, providing a PostgreSQL database, authentication, and other backend services. Used for storing user data and saved analysis reports.
+4.  **User Authentication and Report Saving:**
+    *   Users can register and log in to save their analysis reports.
+    *   Saved reports are associated with the user's account and can be accessed later.
+    *   **Integration:**
+        *   Supabase is used for authentication (`src/lib/supabase.js`, `src/app/login/page.jsx`, `src/app/register/page.jsx`).
+        *   The `src/lib/database.js` module handles saving analysis results to the Supabase database.
+        *   The `src/app/reports/page.jsx` displays the user's saved reports.
 
-## Core Functionality
+5.  **Metrics Endpoint:**
+    *   Provides an endpoint for Prometheus to scrape application metrics.
+    *   **Integration:** The `src/app/api/metrics/route.jsx` endpoint exposes metrics like total HTTP requests, secured by a token-based authentication mechanism.
 
-The Analyser application provides two primary modes of analysis:
+### Technical Stack:
 
-### 1. HTML Analysis
+*   **Frontend:** Next.js, React, Tailwind CSS
+*   **Accessibility Engine:** axe-core
+*   **Browser Automation:** Puppeteer
+*   **Backend/API:** Next.js API Routes
+*   **Database:** Supabase (PostgreSQL)
+*   **Authentication:** Supabase Auth
+*   **CI/CD:** Jenkins (defined in `jenkinsfile`)
 
-Users can paste raw HTML code directly into a text area. The application then sends this HTML to the backend API (`/api/analysehtml`) for processing.
+## Architecture Overview
 
-*   **Process:**
-    1.  The backend receives the HTML content.
-    2.  Puppeteer launches a headless browser.
-    3.  The HTML is loaded into a new page using `page.setContent()`.
-    4.  The `axe-core` script is injected into the page.
-    5.  `axe.run()` is executed to perform the accessibility scan.
-    6.  The results (violations, passes, etc.) are returned to the frontend.
+![Architecture Diagram](./dfd.png)
 
-*   **Integration Points:**
-    *   `src/app/api/analysehtml/route.jsx`: Handles the POST request for HTML analysis.
-    *   `src/app/component/html.jsx`: The frontend component for the HTML input and results display.
+## Key Components and Integration Points
 
-### 2. URL Analysis
+*   **`src/app/page.js`**: The main page component rendering the `Navbar` and `Body`.
+*   **`src/app/component/navbar.jsx`**: Handles navigation and user authentication status display. Integrates with Supabase for session management.
+*   **`src/app/component/body.jsx`**: Manages the main content area, including the tabbed interface for HTML and URL analysis.
+*   **`src/app/component/html.jsx`**: Contains the textarea for HTML input, the analysis submission logic, and the display of HTML analysis reports. It interacts with `/api/analysehtml`.
+*   **`src/app/component/url.jsx`**: Features the URL input field, analysis submission, and URL analysis report display. It interacts with `/api/analyseURL`.
+*   **`src/app/api/analysehtml/route.jsx`**: The API endpoint for analyzing HTML. It uses `puppeteer` to render HTML and `axe-core` for the analysis.
+*   **`src/app/api/analyseURL/route.jsx`**: The API endpoint for analyzing URLs. It uses `puppeteer` to fetch and render web pages for `axe-core` analysis.
+*   **`src/lib/supabase.js`**: Provides the Supabase client instance and a safe fallback for when Supabase is not configured.
+*   **`src/lib/database.js`**: Contains functions for interacting with the Supabase database, specifically for saving analysis results (`saveViolationFromUrl`, `saveViolationFromHtml`) and fetching user reports (`getUserViolations`).
+*   **`src/app/reports/page.jsx`**: Displays a list of saved analysis reports for the logged-in user, fetched from Supabase.
 
-Users can input a URL of a website. The application then fetches the accessibility report for that URL.
+---
 
-*   **Process:**
-    1.  The backend receives the URL.
-    2.  Puppeteer launches a headless browser.
-    3.  The specified URL is navigated to using `page.goto()`.
-    4.  The `axe-core` script is injected into the page.
-    5.  `axe.run()` is executed to perform the accessibility scan.
-    6.  The results are returned to the frontend.
+## CI/CD Pipeline
 
-*   **Integration Points:**
-    *   `src/app/api/analyseURL/route.jsx`: Handles the POST request for URL analysis.
-    *   `src/app/component/url.jsx`: The frontend component for URL input and results display.
+The **CI/CD pipeline** is managed through a Jenkinsfile. It automates:
 
-## Authentication and Data Persistence
+1. **Checkout** → Retrieves latest code.  
+2. **Linting** → Runs static code checks.  
+3. **Build Docker Image** → Injects environment variables.  
+4. **Push to DockerHub** → Publishes the Docker image.  
+5. **Deploy to EC2** → Uses `docker compose up -d` for deployment.  
 
-The application integrates with Supabase for user authentication and data storage.
+**Best Practices:**  
+- Use Jenkins credentials for SSH keys, tokens, passwords.  
+- Store configs in environment variables, not hardcoded.  
+- Deployments idempotent (repeated runs yield same state).  
+- Use `set -e` and proper error handling in scripts.  
+- Rotate credentials + secure EC2 SG rules.  
+- Optimize Dockerfiles (multi-stage builds, caching).  
+- Ensure `docker-compose.yml` defines services, networks, volumes, and Nginx reverse proxy setup.  
 
-*   **Authentication:** Users can register and log in using email/password or potentially other methods (e.g., Google Sign-In, as indicated in the `login/page.jsx` file).
-*   **Data Persistence:** Logged-in users can save their analysis reports (both HTML and URL-based) to the Supabase database. This allows users to track their progress and revisit past analyses.
+---
 
-*   **Integration Points:**
-    *   `src/lib/supabase.js`: Supabase client initialization and configuration.
-    *   `src/hooks/useAuth.js`: Custom hook for managing authentication state.
-    *   `src/app/login/page.jsx` & `src/app/register/page.jsx`: Authentication UI components.
-    *   `src/app/component/navbar.jsx`: Displays login/logout options based on authentication status.
-    *   `src/lib/database.js`: Functions for interacting with the Supabase database (saving reports).
-    *   `src/app/component/html.jsx` & `src/app/component/url.jsx`: Components that conditionally display a "Save Report" button for authenticated users.
+## Nginx Configuration
 
-## CI/CD Pipeline (Jenkinsfile)
+Nginx is used as a **reverse proxy** in front of the Next.js app.  
 
-The `jenkinsfile` defines the automated build, test, and deployment process.
+**Purpose:**  
+- Route `/` and `/api/*` traffic to Next.js backend (`frontend:3000`).  
+- Secure `/api/metrics` with token + IP allowlist.  
+- Improve performance with keepalive, timeouts, caching bypass, and WebSocket support.  
 
-*   **Stages:**
-    1.  **Checkout:** Clones the repository.
-    2.  **Lint Code:** Runs code linting using `npm run lint` within the `docker` directory.
-    3.  **Build Docker Image:** Builds a Docker image, injecting Supabase credentials as build arguments.
-    4.  **Push to DockerHub:** Tags the image as `latest` and pushes both the build-specific and `latest` tags to DockerHub.
-    5.  **Deploy to EC2:** Clones the repository on the EC2 instance, pulls the latest Docker image, stops the old container, and starts a new one using `docker compose`.
+**Highlights:**  
+- `worker_connections 1024` → handle concurrency.  
+- `sendfile on` + `keepalive_timeout 65`.  
+- Timeouts increased to 600s (long-running analysis).  
+- `upstream frontend { server frontend:3000; }`.  
+- `location /` → proxies all general traffic.  
+- `location /api/` → routes API calls.  
+- `location /api/metrics` → only allows localhost + Docker subnets, forwards token in `X-Metrics-Token`.  
 
-*   **Key Environment Variables:**
-    *   `DOCKER_IMAGE`, `DOCKERHUB_REPO`: For Docker image management.
-    *   `EC2_USER`, `EC2_IP`, `EC2_SSH_KEY`: For SSH access and deployment to the EC2 instance.
-    *   `SUPABASE_URL`, `SUPABASE_ANON_KEY`: Sensitive credentials injected during the Docker build process.
+**Integration Points:**  
+- **Docker Compose** mounts `nginx.conf`.  
+- **Next.js API routes** handle requests proxied by Nginx.  
+- **Jenkinsfile** ensures Nginx config + metrics token are deployed.  
 
-*   **Post-build Actions:**
-    *   **Always:** Cleans up Docker resources on the Jenkins agent.
-    *   **Success/Failure:** Reports the deployment status.
+**Best Practices:**  
+- Use env-specific configs (prod domains, TLS).  
+- Monitor Nginx logs for debugging & security.  
+- Add health checks for upstream containers.  
+- In production, configure HTTPS on port 443.  
 
-## Configuration Files
-
-*   `eslint.config.mjs`: ESLint configuration for code linting, extending Next.js core web vitals.
-*   `next.config.mjs`: Next.js configuration file. Currently minimal, but can be extended for advanced Next.js features.
-*   `nginx/nginx.conf`: Nginx configuration for routing traffic to the frontend application and handling API requests. It includes specific routing for `/api/metrics` to be accessible only by Prometheus or internal Docker networks.
-
-## Monitoring
-
-*   **Metrics Endpoint:** The `/api/metrics` route exposes Prometheus-compatible metrics.
-    *   It counts incoming HTTP requests using `prom-client`.
-    *   Access to this endpoint is restricted to specific IP ranges (e.g., Docker internal networks or localhost) for security.
-
-*   **Integration Points:**
-    *   `src/app/api/metrics/route.jsx`: Implements the metrics endpoint.
-    *   `nginx/nginx.conf`: Configures Nginx to route `/api/metrics` appropriately and restrict access.
+---
 
 ## Best Practices and Usage Patterns
 
-*   **Environment Variables:** Sensitive information (like Supabase keys) should be managed via environment variables and injected securely during the Docker build process, as demonstrated in the `jenkinsfile`.
-*   **Error Handling:** Robust error handling is implemented in API routes (`try...catch` blocks) to gracefully manage issues during analysis or external service interactions.
-*   **Client-Side State Management:** React's `useState` hook is used effectively in components like `Body`, `Textbox`, and `Urlbox` to manage UI state (e.g., input values, loading status, analysis results).
-*   **Authentication Flow:** The `useAuth` hook centralizes authentication logic, making it easy to check user status and manage sessions across the application.
-*   **Code Organization:** Components are organized within the `src/app/component` directory, promoting modularity and maintainability. Utility functions and hooks are placed in `src/lib` and `src/hooks` respectively.
+*   **Error Handling:** All API routes include `try...catch` blocks to handle potential errors during analysis or data processing. User-facing errors are communicated via alerts or appropriate UI feedback.
+*   **Input Validation:** Both HTML and URL inputs are validated to ensure they are in a correct format before being sent to the analysis API.
+*   **Authentication Flow:** Users must be logged in to save reports. The UI provides clear feedback on authentication status and prompts users to log in when attempting to save.
+*   **Progress Indicators:** Loading states (`loading`, `saving`) are managed and visually indicated to the user during potentially long-running operations like analysis and report saving.
+*   **Environment Variables:** Sensitive information like Supabase URL and Anon Key are managed via environment variables (`.env.local` or similar), crucial for security and deployment. The `jenkinsfile` demonstrates how these can be injected during the build process.
+
+## Common Pitfalls and Gotchas
+
+*   **Puppeteer Sandbox Issues:** Running Puppeteer in a containerized environment (like Docker) often requires the `--no-sandbox` flag for `puppeteer.launch()`. This is already configured in the API routes.
+*   **Timeout Errors:** Web page analysis can sometimes take longer than expected. The `puppeteer.launch()` configuration includes `timeout` and `protocolTimeout` to prevent premature termination of the analysis process.
+*   **Supabase Configuration:** Ensure that `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are correctly set in the environment for Supabase integration to work. The `src/lib/supabase.js` file includes checks and warnings for missing configuration.
+*   **Rate Limiting:** Be mindful of potential rate limits imposed by external websites when analyzing URLs. The current implementation does not explicitly handle rate limiting.
+*   **Dynamic Imports:** Components like `Textbox` and `Urlbox` are client components (`"use client"`). Ensure they are correctly imported and rendered within the client-side context.
