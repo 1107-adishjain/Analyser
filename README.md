@@ -60,7 +60,6 @@ The primary goal of the Accessibility Analyzer is to promote inclusive web desig
 ---
 
 ## 📂 Repository File Structure
-
 .
 ├── docker/
 │   ├── Dockerfile
@@ -117,6 +116,7 @@ The primary goal of the Accessibility Analyzer is to promote inclusive web desig
 ├── README.md
 ├── tailwind.config.js
 └── tsconfig.json
+
 
 
 
