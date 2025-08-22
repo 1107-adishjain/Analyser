@@ -128,12 +128,9 @@ export default function Textbox() {
            
           >
            Analyze the HTML
-          </Button></Link>
-          
+          </Button></Link>  
           </>
           }
-
-
         </div>
       </div>
 
@@ -151,7 +148,7 @@ export default function Textbox() {
                 HTML Accessibility Report
               </h2>
               
-              {/* Save Button - Only show if user is logged in */}
+              
               {user && (
                 <Button
                   onClick={handleSaveReport}

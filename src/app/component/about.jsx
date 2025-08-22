@@ -46,50 +46,6 @@ const About = () => {
         </ul>
       </section>
 
-      {/* Key Features */}
-      {/* <section className="mb-12 bg-gray-50 rounded-2xl p-8 shadow-sm">
-        <h2 className="text-2xl md:text-3xl font-semibold mb-4 text-gray-700 flex items-center gap-3">
-          🧩 Key Features
-        </h2>
-        <ul className="space-y-3">
-          {[
-            { title: "Instant HTML Analysis:", desc: "Paste your code, get results instantly" },
-            { title: "Live URL Checker:", desc: "Scan actual websites for issues" },
-            { title: "Developer-Friendly Reports:", desc: "Categorized, descriptive, and WCAG-linked" },
-            { title: "Open Source & Transparent:", desc: "Built using Next.js, Tailwind CSS, and axe-core" },
-          ].map((feature, index) => (
-            <li key={index} className="text-gray-600 text-lg p-4 rounded-lg bg-white">
-              <strong className="text-gray-800">{feature.title}</strong> {feature.desc}
-            </li>
-          ))}
-        </ul>
-      </section> */}
-
-      {/* Who Should Use It */}
-      {/* <section className="mb-12 bg-gray-100 rounded-2xl p-8 shadow-sm">
-        <h2 className="text-2xl md:text-3xl font-semibold mb-4 text-gray-700 flex items-center gap-3">
-          👥 Who Should Use It?
-        </h2>
-        <p className="text-gray-600 text-lg mb-4 leading-relaxed">Whether you're a:</p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-          {["Web Developer", "UI/UX Designer", "QA Tester", "Accessibility Advocate"].map((role, index) => (
-            <div key={index} className="text-center p-4 bg-white rounded-lg">
-              <div className="text-2xl mb-2">
-                {index === 0 && "💻"}
-                {index === 1 && "🎨"}
-                {index === 2 && "🧪"}
-                {index === 3 && "♿"}
-              </div>
-              <div className="text-gray-600 font-medium">{role}</div>
-            </div>
-          ))}
-        </div>
-        <p className="text-gray-600 text-lg leading-relaxed">
-          This tool streamlines your accessibility testing workflow.
-        </p>
-      </section> */}
-
-      {/* Our Mission */}
       <section className="bg-gray-800 rounded-2xl p-8 shadow-sm text-center transition-all ease-in-out hover:scale-101 delay-100">
         <h2 className="text-2xl md:text-3xl font-semibold mb-4 text-gray-50 flex items-center justify-center gap-3">
            Our Mission
