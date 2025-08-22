@@ -8,7 +8,7 @@ on:
 env:
   DOCKERHUB_REPO: adishjain1107/analyser
   EC2_USER: ubuntu
-  EC2_IP: 3.93.174.94
+  EC2_IP: 3.91.83.112
   REPO_URL: https://github.com/1107-adishjain/Analyser.git
   REMOTE_DIR: /home/ubuntu/analyser
   COMPOSE_DIR: /home/ubuntu/analyser/docker
